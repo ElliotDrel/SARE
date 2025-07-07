@@ -24,32 +24,28 @@ export default function OnboardingIntroPage() {
       title: "Choose Storytellers",
       description: "Select people who know you at your best",
       icon: Users,
-      duration: "5 minutes",
-      active: false
+      duration: "5 minutes"
     },
     {
       id: 2,
       title: "Collect Stories",
       description: "Send invitations and gather meaningful stories",
       icon: MessageSquare,
-      duration: "1-2 weeks",
-      active: false
+      duration: "1-2 weeks"
     },
     {
       id: 3,
       title: "Self Reflection",
       description: "Complete your personal reflections",
       icon: FileText,
-      duration: "30 minutes",
-      active: false
+      duration: "30 minutes"
     },
     {
       id: 4,
       title: "Generate Report",
       description: "Create your comprehensive SARE report",
       icon: FileText,
-      duration: "Instant",
-      active: false
+      duration: "Instant"
     }
   ];
 
