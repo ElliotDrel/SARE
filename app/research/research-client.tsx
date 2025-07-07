@@ -111,21 +111,28 @@ const researchData: ResearchItem[] = [
   }
 ];
 
+// Move getTypeColor outside component to prevent re-creation on every render
+const getTypeColor = (type: ResearchItem['type']) => {
+  switch (type) {
+    case "peer-reviewed": return "bg-primary-teal text-white";
+    case "white-paper": return "bg-accent-coral text-white";
+    case "case-study": return "bg-gray-600 text-white";
+    default: return "bg-gray-200 text-gray-800";
+  }
+};
+
+// Pre-compute research counts for performance
+const researchCounts = researchData.reduce((acc, item) => {
+  acc[item.type] = (acc[item.type] || 0) + 1;
+  return acc;
+}, {} as Record<ResearchItem['type'], number>);
+
 export function ResearchClient() {
   const [selectedTopic, setSelectedTopic] = useState("All Topics");
   
   const filteredResearch = selectedTopic === "All Topics" 
     ? researchData 
     : researchData.filter(item => item.topic === selectedTopic);
-
-  const getTypeColor = (type: ResearchItem['type']) => {
-    switch (type) {
-      case "peer-reviewed": return "bg-primary-teal text-white";
-      case "white-paper": return "bg-accent-coral text-white";
-      case "case-study": return "bg-gray-600 text-white";
-      default: return "bg-gray-200 text-gray-800";
-    }
-  };
 
   return (
     <section className="section-spacing">
@@ -140,6 +147,7 @@ export function ResearchClient() {
                   <button
                     key={topic}
                     onClick={() => setSelectedTopic(topic)}
+                    aria-pressed={selectedTopic === topic}
                     className={`block w-full text-left px-3 py-2 rounded-md text-sm transition-colors ${
                       selectedTopic === topic
                         ? "bg-primary-teal text-white"
@@ -156,9 +164,9 @@ export function ResearchClient() {
                 <h4 className="font-semibold mb-2">Research Overview</h4>
                 <div className="space-y-1 text-sm text-gray-600">
                   <div>Total Studies: {researchData.length}</div>
-                  <div>Peer Reviewed: {researchData.filter(r => r.type === "peer-reviewed").length}</div>
-                  <div>White Papers: {researchData.filter(r => r.type === "white-paper").length}</div>
-                  <div>Case Studies: {researchData.filter(r => r.type === "case-study").length}</div>
+                  <div>Peer Reviewed: {researchCounts["peer-reviewed"]}</div>
+                  <div>White Papers: {researchCounts["white-paper"]}</div>
+                  <div>Case Studies: {researchCounts["case-study"]}</div>
                 </div>
               </div>
             </div>
