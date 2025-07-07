@@ -65,7 +65,7 @@ export default async function Home() {
         <div className="container-sare text-center">
           <h2 className="heading-lg mb-6">Extraordinary Moments</h2>
           <p className="body-lg mb-8 max-w-4xl mx-auto text-gray-600">
-            We all have moments when we feel most alive, engaged, and authentic. These are the times when we're operating from our signature strengths - our unique combination of talents, skills, and values that make us who we are at our best.
+            We all have moments when we feel most alive, engaged, and authentic. These are the times when we&apos;re operating from our signature strengths - our unique combination of talents, skills, and values that make us who we are at our best.
           </p>
           <Button asChild variant="outline" size="lg">
             <Link href="/about">Learn More About SARE</Link>
@@ -73,10 +73,10 @@ export default async function Home() {
         </div>
       </section>
 
-      {/* What's Right for You Section */}
+      {/* What&apos;s Right for You Section */}
       <section className="section-spacing bg-gray-50">
         <div className="container-sare">
-          <h2 className="heading-lg text-center mb-12">What's Right for You?</h2>
+          <h2 className="heading-lg text-center mb-12">What&apos;s Right for You?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
             {whatRightForYouCards.map((card) => (
               <Card key={card.title} className="hover:shadow-lg transition-shadow">
@@ -105,7 +105,7 @@ export default async function Home() {
         <div className="container-sare text-center">
           <h2 className="heading-lg mb-6">Discover Your Best Self</h2>
           <p className="body-lg mb-8 max-w-3xl mx-auto">
-            Through the SARE exercise, you'll collect stories from people who know you well, reflect on your experiences, and generate insights that help you understand and leverage your signature strengths.
+            Through the SARE exercise, you&apos;ll collect stories from people who know you well, reflect on your experiences, and generate insights that help you understand and leverage your signature strengths.
           </p>
           <Button asChild size="lg" variant="outline" className="bg-white text-accent-coral hover:bg-gray-100">
             <Link href="/auth/sign-up">Start Your SARE Journey</Link>
