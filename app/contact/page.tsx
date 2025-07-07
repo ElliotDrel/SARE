@@ -60,7 +60,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
             Talk to Us
           </h1>
           <p className="body-lg max-w-3xl mx-auto text-white/90">
-            We'd love to hear from you. Send us a message and we'll respond as soon as possible.
+            We&apos;d love to hear from you. Send us a message and we&apos;ll respond as soon as possible.
           </p>
         </div>
       </section>
@@ -74,7 +74,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
                 <CardHeader className="text-center">
                   <CardTitle className="text-green-800">Message Sent Successfully!</CardTitle>
                   <CardDescription className="text-green-600">
-                    Thank you for reaching out. We'll get back to you as soon as possible.
+                    Thank you for reaching out. We&apos;ll get back to you as soon as possible.
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="text-center">
@@ -88,7 +88,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
                 <CardHeader>
                   <CardTitle className="text-primary-teal">Send us a message</CardTitle>
                   <CardDescription>
-                    Whether you have questions about SARE, need support, or want to learn more about our services, we're here to help.
+                    Whether you have questions about SARE, need support, or want to learn more about our services, we&apos;re here to help.
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
