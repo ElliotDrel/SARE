@@ -122,13 +122,13 @@ export default async function ContactPage({ searchParams }: ContactPageProps) {
                     
                     <div className="space-y-2">
                       <Label htmlFor="message">Message *</Label>
-                      <textarea
+                      <Textarea
                         id="message"
                         name="message"
                         rows={6}
                         placeholder="Tell us how we can help you..."
                         required
-                        className="w-full px-3 py-2 border border-input rounded-md bg-background text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 resize-none"
+                        className="resize-none"
                       />
                     </div>
 
