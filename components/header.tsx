@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AuthButton } from "./auth-button";
 import { MobileMenu } from "./mobile-menu";
+import { createClient } from "@/lib/supabase/server";
 
 const navigationLinks = [
   { name: "Home", href: "/" },
@@ -11,7 +12,12 @@ const navigationLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
-export function Header() {
+export async function Header() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <header className="bg-primary-teal text-white sticky top-0 z-50">
       <div className="container-sare">
@@ -40,7 +46,7 @@ export function Header() {
           </div>
 
           {/* Mobile Menu */}
-          <MobileMenu navigationLinks={navigationLinks} />
+          <MobileMenu navigationLinks={navigationLinks} user={user} />
         </div>
       </div>
     </header>
