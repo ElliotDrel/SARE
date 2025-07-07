@@ -7,8 +7,6 @@ const navigationLinks = [
   { name: "Home", href: "/" },
   { name: "About", href: "/about" },
   { name: "Research", href: "/research" },
-  { name: "Purchase", href: "/purchase" },
-  { name: "Certification", href: "/certification" },
   { name: "Contact", href: "/contact" },
 ];
 
