@@ -3,10 +3,11 @@
 import { createClient } from "@/lib/supabase/server";
 import type {
   Storyteller,
-  Story,
-  SelfReflection,
-  CertificationLead,
-  ContactMessage,
+  // The following types are currently unused. Uncomment them when you are ready to use them:
+  // Story,
+  // SelfReflection,
+  // CertificationLead,
+  // ContactMessage,
   StorytellerInsert,
   StoryInsert,
   SelfReflectionInsert,
