@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "./ui/button";
+import { LogoutButton } from "./logout-button";
 import { Menu, X } from "lucide-react";
+import { User } from "@supabase/supabase-js";
 
 interface NavigationLink {
   name: string;
@@ -12,9 +14,10 @@ interface NavigationLink {
 
 interface MobileMenuProps {
   navigationLinks: NavigationLink[];
+  user: User | null;
 }
 
-export function MobileMenu({ navigationLinks }: MobileMenuProps) {
+export function MobileMenu({ navigationLinks, user }: MobileMenuProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -46,14 +49,23 @@ export function MobileMenu({ navigationLinks }: MobileMenuProps) {
               ))}
             </nav>
             <div className="mt-4 pt-4 border-t border-primary-teal/20">
-              <div className="flex gap-2">
-                <Button asChild size="sm" variant="outline" className="bg-white text-primary-teal hover:bg-gray-100">
-                  <Link href="/auth/login">Sign in</Link>
-                </Button>
-                <Button asChild size="sm" className="bg-accent-coral hover:bg-accent-coral/90">
-                  <Link href="/auth/sign-up">Sign up</Link>
-                </Button>
-              </div>
+              {user ? (
+                <div className="flex flex-col gap-2">
+                  <div className="text-white text-sm">
+                    Hey, {user.email}!
+                  </div>
+                  <LogoutButton />
+                </div>
+              ) : (
+                <div className="flex gap-2">
+                  <Button asChild size="sm" variant="outline" className="bg-white text-primary-teal hover:bg-gray-100">
+                    <Link href="/auth/login">Sign in</Link>
+                  </Button>
+                  <Button asChild size="sm" className="bg-accent-coral hover:bg-accent-coral/90">
+                    <Link href="/auth/sign-up">Sign up</Link>
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
         </div>
