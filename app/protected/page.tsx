@@ -21,6 +21,7 @@ import {
 } from "lucide-react";
 
 export default async function ProtectedPage() {
+  const STORY_GOAL = 10;
   const supabase = await createClient();
 
   const { data, error } = await supabase.auth.getUser();
@@ -54,7 +55,7 @@ export default async function ProtectedPage() {
               Stories Collected
             </CardTitle>
             <CardDescription>
-              Progress toward your goal of 10 stories
+              Progress toward your goal of {STORY_GOAL} stories
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -65,12 +66,12 @@ export default async function ProtectedPage() {
               <div 
                 className="bg-primary-teal h-2 rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${Math.min((onboardingStatus.storiesCollected / 10) * 100, 100)}%` 
+                  width: `${Math.min((onboardingStatus.storiesCollected / STORY_GOAL) * 100, 100)}%` 
                 }}
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              {10 - onboardingStatus.storiesCollected} stories remaining
+              {STORY_GOAL - onboardingStatus.storiesCollected} stories remaining
             </p>
           </CardContent>
         </Card>
