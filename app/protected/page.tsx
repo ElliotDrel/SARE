@@ -31,6 +31,9 @@ export default async function ProtectedPage() {
 
   const user = data.user;
   const onboardingStatus = await checkOnboardingStatus(user.id);
+  
+  // Ensure storiesCollected is a valid number
+  const storiesCollected = Number(onboardingStatus.storiesCollected) || 0;
 
   return (
     <div className="container-sare section-spacing">
@@ -60,18 +63,18 @@ export default async function ProtectedPage() {
           </CardHeader>
           <CardContent>
             <div className="text-3xl font-bold text-primary-teal mb-2">
-              {onboardingStatus.storiesCollected}
+              {storiesCollected}
             </div>
             <div className="w-full bg-gray-200 rounded-full h-2 mb-3">
               <div 
                 className="bg-primary-teal h-2 rounded-full transition-all duration-300"
                 style={{ 
-                  width: `${Math.min((onboardingStatus.storiesCollected / STORY_GOAL) * 100, 100)}%` 
+                  width: `${Math.min((storiesCollected / STORY_GOAL) * 100, 100)}%` 
                 }}
               />
             </div>
             <p className="text-sm text-muted-foreground">
-              {STORY_GOAL - onboardingStatus.storiesCollected} stories remaining
+              {Math.max(0, STORY_GOAL - storiesCollected)} stories remaining
             </p>
           </CardContent>
         </Card>
