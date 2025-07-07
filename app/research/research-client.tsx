@@ -118,7 +118,7 @@ export function ResearchClient() {
     ? researchData 
     : researchData.filter(item => item.topic === selectedTopic);
 
-  const getTypeColor = (type: string) => {
+  const getTypeColor = (type: ResearchItem['type']) => {
     switch (type) {
       case "peer-reviewed": return "bg-primary-teal text-white";
       case "white-paper": return "bg-accent-coral text-white";

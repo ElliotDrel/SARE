@@ -5,6 +5,7 @@ import { Label } from "@/components/ui/label";
 import { createClient } from "@/lib/supabase/server";
 import { ContactMessageInsert } from "@/lib/supabase/types";
 import { redirect } from "next/navigation";
+import Link from "next/link";
 
 export const metadata = {
   title: "Talk to Us",
@@ -78,7 +79,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
                 </CardHeader>
                 <CardContent className="text-center">
                   <Button asChild className="bg-primary-teal hover:bg-primary-teal/90">
-                    <a href="/">Return Home</a>
+                    <Link href="/">Return Home</Link>
                   </Button>
                 </CardContent>
               </Card>
@@ -164,7 +165,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
               </CardHeader>
               <CardContent>
                 <Button asChild variant="outline">
-                  <a href="/research">View Research</a>
+                  <Link href="/research">View Research</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -178,7 +179,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
               </CardHeader>
               <CardContent>
                 <Button asChild variant="outline">
-                  <a href="/about">Learn More</a>
+                  <Link href="/about">Learn More</Link>
                 </Button>
               </CardContent>
             </Card>
@@ -192,7 +193,7 @@ export default function ContactPage({ searchParams }: ContactPageProps) {
               </CardHeader>
               <CardContent>
                 <Button asChild className="bg-primary-teal hover:bg-primary-teal/90">
-                  <a href="/auth/sign-up">Start Now</a>
+                  <Link href="/auth/sign-up">Start Now</Link>
                 </Button>
               </CardContent>
             </Card>
