@@ -43,13 +43,14 @@ async function submitContactForm(formData: FormData) {
 }
 
 interface ContactPageProps {
-  searchParams?: {
+  searchParams?: Promise<{
     success?: string;
-  };
+  }>;
 }
 
-export default function ContactPage({ searchParams }: ContactPageProps) {
-  const isSuccess = searchParams?.success === "true";
+export default async function ContactPage({ searchParams }: ContactPageProps) {
+  const params = await searchParams;
+  const isSuccess = params?.success === "true";
 
   return (
     <div className="min-h-screen">
