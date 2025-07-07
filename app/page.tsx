@@ -78,16 +78,16 @@ export default async function Home() {
         <div className="container-sare">
           <h2 className="heading-lg text-center mb-12">What's Right for You?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-            {whatRightForYouCards.map((card, index) => (
-              <Card key={index} className="hover:shadow-lg transition-shadow">
+            {whatRightForYouCards.map((card) => (
+              <Card key={card.title} className="hover:shadow-lg transition-shadow">
                 <CardHeader>
                   <CardTitle className="text-primary-teal">{card.title}</CardTitle>
                   <CardDescription className="text-base">{card.description}</CardDescription>
                 </CardHeader>
                 <CardContent>
                   <ul className="space-y-2">
-                    {card.features.map((feature, featureIndex) => (
-                      <li key={featureIndex} className="flex items-center">
+                    {card.features.map((feature) => (
+                      <li key={feature} className="flex items-center">
                         <div className="w-2 h-2 bg-accent-coral rounded-full mr-3"></div>
                         <span className="text-sm">{feature}</span>
                       </li>
