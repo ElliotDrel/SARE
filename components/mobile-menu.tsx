@@ -3,7 +3,6 @@
 import Link from "next/link";
 import { useState } from "react";
 import { Button } from "./ui/button";
-import { AuthButton } from "./auth-button";
 import { Menu, X } from "lucide-react";
 
 interface NavigationLink {
@@ -47,7 +46,14 @@ export function MobileMenu({ navigationLinks }: MobileMenuProps) {
               ))}
             </nav>
             <div className="mt-4 pt-4 border-t border-primary-teal/20">
-              <AuthButton />
+              <div className="flex gap-2">
+                <Button asChild size="sm" variant="outline" className="bg-white text-primary-teal hover:bg-gray-100">
+                  <Link href="/auth/login">Sign in</Link>
+                </Button>
+                <Button asChild size="sm" className="bg-accent-coral hover:bg-accent-coral/90">
+                  <Link href="/auth/sign-up">Sign up</Link>
+                </Button>
+              </div>
             </div>
           </div>
         </div>
