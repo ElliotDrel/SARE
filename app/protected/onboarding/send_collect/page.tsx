@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -35,9 +35,10 @@ export default function SendCollectPage() {
 
   useEffect(() => {
     fetchData();
-  }, []);
+  }, [fetchData]);
 
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    setIsLoading(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -66,7 +67,7 @@ export default function SendCollectPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
   const sendInvite = async (storyteller: Storyteller) => {
     if (!userId) return;

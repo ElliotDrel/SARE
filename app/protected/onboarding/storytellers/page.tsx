@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -52,9 +52,9 @@ export default function StorytellersPage() {
 
   useEffect(() => {
     fetchStorytellers();
-  }, []);
+  }, [fetchStorytellers]);
 
-  const fetchStorytellers = async () => {
+  const fetchStorytellers = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -72,7 +72,7 @@ export default function StorytellersPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
   const generateInviteToken = () => {
     return Math.random().toString(36).substring(2, 15) + 
@@ -171,7 +171,7 @@ export default function StorytellersPage() {
         </h1>
         <p className="body-lg text-muted-foreground">
           Select 3-10 people who know you well and have seen you at your best. 
-          They'll be invited to share stories about your strengths.
+          They&apos;ll be invited to share stories about your strengths.
         </p>
       </div>
 
@@ -274,7 +274,7 @@ export default function StorytellersPage() {
                       </DialogTitle>
                       <DialogDescription>
                         {editingStoryteller 
-                          ? "Update the storyteller's information."
+                          ? "Update the storyteller&apos;s information."
                           : "Add someone who knows you well and has seen you at your best."
                         }
                       </DialogDescription>
@@ -408,7 +408,7 @@ export default function StorytellersPage() {
           <div className="bg-green-50 rounded-lg p-6 mb-6">
             <CheckCircle className="h-8 w-8 text-green-500 mx-auto mb-2" />
             <h3 className="text-lg font-semibold text-green-800 mb-2">
-              Great! You've added {storytellers.length} storyteller{storytellers.length === 1 ? '' : 's'}
+              Great! You&apos;ve added {storytellers.length} storyteller{storytellers.length === 1 ? '' : 's'}
             </h3>
             <p className="text-green-700">
               You can add more storytellers anytime, or continue to the next step to send invitations.

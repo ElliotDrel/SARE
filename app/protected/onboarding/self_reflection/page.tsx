@@ -16,7 +16,6 @@ import {
   Loader2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import type { SelfReflection, SelfReflectionInsert } from "@/lib/supabase/types";
 
 // Metadata for this page
 // Note: This is a client component, so metadata should be handled by parent layout
@@ -59,9 +58,9 @@ export default function SelfReflectionPage() {
 
   useEffect(() => {
     fetchReflections();
-  }, []);
+  }, [fetchReflections]);
 
-  const fetchReflections = async () => {
+  const fetchReflections = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -87,7 +86,7 @@ export default function SelfReflectionPage() {
     } finally {
       setIsLoading(false);
     }
-  };
+  }, [supabase]);
 
   const saveReflections = useCallback(async (reflectionData = reflections) => {
     if (!userId) return;
@@ -117,7 +116,7 @@ export default function SelfReflectionPage() {
     } finally {
       setIsSaving(false);
     }
-  }, [userId, reflections]);
+  }, [userId, reflections, supabase]);
 
   // Auto-save functionality with debounce
   useEffect(() => {
@@ -313,7 +312,7 @@ export default function SelfReflectionPage() {
               Excellent! Your reflections are complete
             </h3>
             <p className="text-green-700">
-              You've completed all three reflection questions. Your insights will help create a personalized report that highlights your unique strengths.
+              You&apos;ve completed all three reflection questions. Your insights will help create a personalized report that highlights your unique strengths.
             </p>
           </div>
           
