@@ -56,10 +56,6 @@ export default function SelfReflectionPage() {
     }
   ];
 
-  useEffect(() => {
-    fetchReflections();
-  }, [fetchReflections]);
-
   const fetchReflections = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -87,6 +83,10 @@ export default function SelfReflectionPage() {
       setIsLoading(false);
     }
   }, [supabase]);
+
+  useEffect(() => {
+    fetchReflections();
+  }, [fetchReflections]);
 
   const saveReflections = useCallback(async (reflectionData = reflections) => {
     if (!userId) return;

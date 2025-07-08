@@ -33,10 +33,6 @@ export default function SendCollectPage() {
   const supabase = createClient();
   const STORY_GOAL = 10;
 
-  useEffect(() => {
-    fetchData();
-  }, [fetchData]);
-
   const fetchData = useCallback(async () => {
     setIsLoading(true);
     try {
@@ -68,6 +64,10 @@ export default function SendCollectPage() {
       setIsLoading(false);
     }
   }, [supabase]);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   const sendInvite = async (storyteller: Storyteller) => {
     if (!userId) return;
