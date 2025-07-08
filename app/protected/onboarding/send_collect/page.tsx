@@ -29,12 +29,14 @@ export default function SendCollectPage() {
   const [isLoading, setIsLoading] = useState(true);
   const [sendingInvites, setSendingInvites] = useState<Set<string>>(new Set());
   const [userId, setUserId] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
   
   const supabase = createClient();
   const STORY_GOAL = 10;
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -60,6 +62,7 @@ export default function SendCollectPage() {
 
     } catch (error) {
       console.error("Error fetching data:", error);
+      setError("Could not fetch storyteller data. Please try again later.");
     } finally {
       setIsLoading(false);
     }
@@ -73,28 +76,34 @@ export default function SendCollectPage() {
     if (!userId) return;
 
     setSendingInvites(prev => new Set(prev).add(storyteller.id));
+    setError(null);
     
     try {
       // Update invite_sent_at timestamp
-      const { error } = await supabase
+      const { error: updateError } = await supabase
         .from("storytellers")
         .update({ invite_sent_at: new Date().toISOString() })
         .eq("id", storyteller.id);
 
-      if (error) throw error;
+      if (updateError) throw updateError;
 
-      // TODO: Implement actual email sending via Supabase Edge Functions
-      // For now, we'll just simulate the email sending
-      console.log(`Sending invite to ${storyteller.email} with token: ${storyteller.invite_token}`);
-      
-      // Simulate API delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
+      // Invoke the Supabase Edge Function to send the invite email
+      const { error: invokeError } = await supabase.functions.invoke('send-story-invite', {
+        body: { 
+          email: storyteller.email,
+          invite_token: storyteller.invite_token,
+          storyteller_name: storyteller.name,
+        },
+      });
+
+      if (invokeError) throw invokeError;
+
       // Refresh data to show updated status
       await fetchData();
       
     } catch (error) {
       console.error("Error sending invite:", error);
+      setError(`Failed to send invite to ${storyteller.name}. Please try again.`);
     } finally {
       setSendingInvites(prev => {
         const newSet = new Set(prev);
@@ -158,6 +167,23 @@ export default function SendCollectPage() {
           Send invitations to your storytellers and track their progress as they share stories about your strengths.
         </p>
       </div>
+
+      {/* Error Alert */}
+      {error && (
+        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-6 flex justify-between items-center" role="alert">
+          <div>
+            <strong className="font-bold">An error occurred:</strong>
+            <span className="block sm:inline ml-2">{error}</span>
+          </div>
+          <button 
+            onClick={() => setError(null)} 
+            className="text-red-700 hover:text-red-900"
+            aria-label="Close"
+          >
+            <span className="text-2xl font-bold">&times;</span>
+          </button>
+        </div>
+      )}
 
       {/* Progress Overview */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
