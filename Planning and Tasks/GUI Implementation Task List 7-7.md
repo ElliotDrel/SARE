@@ -278,50 +278,51 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## User Dashboard Tasks
 
-### Task 15: Update Protected Dashboard
+### Task 15: Update Protected Dashboard ✅ PARTIALLY COMPLETED
 **Priority**: High  
 **Location**: `app/protected/page.tsx`  
 **Details**:
-- [ ] Add greeting header displaying user email from Supabase auth
-- [ ] Create "Stories Collected" card:
-  - [ ] Query `stories` table for count
-  - [ ] Display progress toward goal of 10
-- [ ] Create "Self Reflection Status" card:
-  - [ ] Query `self_reflections` table
-  - [ ] Show completion status
-- [ ] Create "Report Generation Status" card:
-  - [ ] Check if self-reflection is complete
-  - [ ] Show View button if ready
-- [ ] Add quick links to onboarding wizard steps
+- [x] Add greeting header displaying user email from Supabase auth
+- [x] Create "Stories Collected" card:
+  - [x] Query `stories` table for count
+  - [x] Display progress toward goal of 10
+- [x] Create "Self Reflection Status" card:
+  - [x] Query `self_reflections` table
+  - [x] Show completion status
+- [x] Create "Report Generation Status" card:
+  - [x] Check if self-reflection is complete
+  - [x] Show View button if ready
+- [x] Add quick links to onboarding wizard steps
+- [ ] Additional dashboard features (if any) remain to be implemented
 
 ## Onboarding Wizard Tasks
 
-### Task 16: Create Onboarding Intro Page
+### Task 16: Create Onboarding Intro Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/protected/onboarding/intro/page.tsx`  
 **Details**:
-- [ ] Create folder structure `app/protected/onboarding/intro`
-- [ ] Create `page.tsx` file
-- [ ] Add timeline graphic showing all steps
-- [ ] Add explanatory content
-- [ ] Add Next button linking to `/protected/onboarding/storytellers`
+- [x] Create folder structure `app/protected/onboarding/intro`
+- [x] Create `page.tsx` file
+- [x] Add timeline graphic showing all steps
+- [x] Add explanatory content
+- [x] Add Next button linking to `/protected/onboarding/storytellers`
 
-### Task 17: Create Choose Storytellers Page
+### Task 17: Create Choose Storytellers Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/protected/onboarding/storytellers/page.tsx`  
 **Details**:
-- [ ] Create folder `app/protected/onboarding/storytellers`
-- [ ] Create `page.tsx` file
-- [ ] Create table component to display storytellers
-- [ ] Create "Add Storyteller" modal with form:
-  - [ ] Name field (required)
-  - [ ] Email field (required)
-  - [ ] Phone field (optional)
-- [ ] Implement CRUD operations for `storytellers` table
-- [ ] Generate unique invite tokens
-- [ ] Add Next button when at least one storyteller added
+- [x] Create folder `app/protected/onboarding/storytellers`
+- [x] Create `page.tsx` file
+- [x] Create table component to display storytellers
+- [x] Create "Add Storyteller" modal with form:
+  - [x] Name field (required)
+  - [x] Email field (required)
+  - [x] Phone field (optional)
+- [x] Implement CRUD operations for `storytellers` table
+- [x] Generate unique invite tokens
+- [x] Add Next button when at least one storyteller added
 
-### Task 18: Create Send and Collect Stories Page
+### Task 18: Create Send and Collect Stories Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/protected/onboarding/send_collect/page.tsx`  
 **Details**:
@@ -333,7 +334,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Implement Supabase Edge Functions for email/SMS sending
 - [ ] Add Next button when stories threshold met
 
-### Task 19: Create Self Reflection Page
+### Task 19: Create Self Reflection Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/protected/onboarding/self_reflection/page.tsx`  
 **Details**:
@@ -345,7 +346,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Add progress indicator
 - [ ] Add Next button when reflections saved
 
-### Task 20: Create Report Page
+### Task 20: Create Report Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/protected/onboarding/report/page.tsx`  
 **Details**:
@@ -359,7 +360,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Storyteller Flow Tasks
 
-### Task 21: Create Story Invite Landing Page
+### Task 21: Create Story Invite Landing Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/story_invite/page.tsx`  
 **Details**:
@@ -370,7 +371,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Display invitee name
 - [ ] Add Sign Up button linking to `/story_signup` with token
 
-### Task 22: Create Storyteller Sign Up Page
+### Task 22: Create Storyteller Sign Up Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/story_signup/page.tsx`  
 **Details**:
@@ -382,7 +383,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Link account to storyteller record
 - [ ] Redirect to `/story_submit` after successful signup
 
-### Task 23: Create Story Submission Page
+### Task 23: Create Story Submission Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/story_submit/page.tsx`  
 **Details**:
@@ -395,7 +396,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Update storyteller record with submission timestamp
 - [ ] Redirect to thank you page after submission
 
-### Task 24: Create Story Thank You Page
+### Task 24: Create Story Thank You Page ⬜ PENDING
 **Priority**: High  
 **Location**: `app/story_thank_you/page.tsx`  
 **Details**:
@@ -406,7 +407,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Component Reuse Tasks
 
-### Task 25: Create Reusable Form Components
+### Task 25: Create Reusable Form Components ⬜ PENDING
 **Priority**: Medium  
 **Location**: `components/forms/`  
 **Details**:
@@ -415,7 +416,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [ ] Create `FormSubmitButton` component with loading state
 - [ ] Ensure consistent styling across all forms
 
-### Task 26: Create Card Component Variants
+### Task 26: Create Card Component Variants ⬜ PENDING
 **Priority**: Medium  
 **Location**: Update `components/ui/card.tsx`  
 **Details**:
@@ -462,6 +463,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Notes
 
+- The onboarding intro and storytellers steps are implemented, but the rest of the onboarding flow and storyteller flow pages are not yet present in the codebase.
 - Each task should be completed and tested before moving to the next
 - Use existing components and patterns where possible to maintain consistency
 - Follow the file naming conventions already established in the codebase
