@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,11 +50,23 @@ export default function StorytellersPage() {
 
   const supabase = createClient();
 
+  // ================= DEBUG LOGS START =================
+  // Track Supabase client identity across renders and component re-renders
+  const supabaseRef = useRef(supabase);
   useEffect(() => {
-    fetchStorytellers();
-  }, [fetchStorytellers]);
+    // Log every render so we can correlate with Supabase instance identity
+    console.log("[Debug][StorytellersPage] render – supabase instance:", supabase);
+
+    // Warn if a new Supabase client is created on re-render (should remain stable)
+    if (supabaseRef.current !== supabase) {
+      console.warn("[Debug][StorytellersPage] Supabase instance changed between renders – this may cause repeated effects/fetches.");
+      supabaseRef.current = supabase;
+    }
+  });
+  // ================= DEBUG LOGS END =================
 
   const fetchStorytellers = useCallback(async () => {
+    console.log("[Debug][fetchStorytellers] invoked");
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
@@ -67,12 +79,18 @@ export default function StorytellersPage() {
 
       if (error) throw error;
       setStorytellers(data || []);
+
+      console.log("[Debug][fetchStorytellers] completed – rows fetched:", data?.length ?? 0);
     } catch (error) {
       console.error("Error fetching storytellers:", error);
     } finally {
       setIsLoading(false);
     }
   }, [supabase]);
+
+  useEffect(() => {
+    fetchStorytellers();
+  }, [fetchStorytellers]);
 
   const generateInviteToken = () => {
     return Math.random().toString(36).substring(2, 15) + 
