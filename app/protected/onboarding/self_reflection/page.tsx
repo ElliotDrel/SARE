@@ -16,8 +16,7 @@ import {
   Loader2
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { upsertSelfReflection, getSelfReflection } from "@/lib/supabase/database";
-import type { SelfReflection } from "@/lib/supabase/types";
+import type { SelfReflection, SelfReflectionInsert } from "@/lib/supabase/types";
 
 // Metadata for this page
 // Note: This is a client component, so metadata should be handled by parent layout
@@ -69,7 +68,11 @@ export default function SelfReflectionPage() {
 
       setUserId(user.id);
 
-      const { data: existingReflection } = await getSelfReflection(user.id);
+      const { data: existingReflection } = await supabase
+        .from("self_reflections")
+        .select("*")
+        .eq("user_id", user.id)
+        .single();
       
       if (existingReflection) {
         setReflections({
@@ -93,10 +96,14 @@ export default function SelfReflectionPage() {
     setIsSaving(true);
 
     try {
-      await upsertSelfReflection({
-        user_id: userId,
-        ...reflectionData
-      });
+      await supabase
+        .from("self_reflections")
+        .upsert({
+          user_id: userId,
+          ...reflectionData
+        }, { onConflict: "user_id" })
+        .select()
+        .single();
 
       setLastSaved(new Date());
       setSaveStatus('saved');
