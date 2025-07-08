@@ -372,17 +372,24 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - Integrated with existing database functions (upsertSelfReflection, getSelfReflection)
 - Created meaningful reflection questions focused on peak performance, natural talents, and impact
 
-### Task 20: Create Report Page ⬜ PENDING
+### Task 20: Create Report Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/protected/onboarding/report/page.tsx`  
 **Details**:
-- [ ] Create folder `app/protected/onboarding/report`
-- [ ] Create `page.tsx` file
-- [ ] Query and display all collected stories
-- [ ] Create collapsible sections for each story
-- [ ] Display self-reflections
-- [ ] Implement PDF export using pdf-lib (already installed)
-- [ ] Add download button for PDF
+- [x] Create folder `app/protected/onboarding/report`
+- [x] Create `page.tsx` file
+- [x] Query and display all collected stories
+- [x] Create collapsible sections for each story
+- [x] Display self-reflections
+- [x] Implement PDF export using pdf-lib (installed) and file-saver
+- [x] Add download button for PDF
+
+**Completion Details**:
+- Created responsive report page with server-side data fetching for user, self-reflections, and stories.
+- Implemented a client component to display the report, including self-reflections and an accordion for stories.
+- Added a "Download as PDF" button that generates a PDF of the report on the client-side using `pdf-lib`.
+- Used `file-saver` to trigger the download of the generated PDF.
+- Ensured the UI matches the existing brand styles and is fully responsive.
 
 ## Storyteller Flow Tasks
 
