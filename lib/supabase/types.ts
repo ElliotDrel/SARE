@@ -2,7 +2,8 @@
 
 export interface Storyteller {
   id: string;
-  user_id: string;
+  user_id: string; // This is the main user who created the storyteller
+  storyteller_user_id?: string | null; // This is the storyteller's own user id after they sign up
   name: string;
   email: string;
   phone?: string | null;

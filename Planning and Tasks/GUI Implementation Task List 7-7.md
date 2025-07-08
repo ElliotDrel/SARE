@@ -393,50 +393,79 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Storyteller Flow Tasks
 
-### Task 21: Create Story Invite Landing Page ⬜ PENDING
+### Task 21: Create Story Invite Landing Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_invite/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_invite`
-- [ ] Create `page.tsx` file
-- [ ] Parse token from URL query parameter
-- [ ] Validate token against `storytellers` table
-- [ ] Display invitee name
-- [ ] Add Sign Up button linking to `/story_signup` with token
+- [x] Create folder `app/story_invite`
+- [x] Create `page.tsx` file
+- [x] Parse token from URL query parameter
+- [x] Validate token against `storytellers` table
+- [x] Display invitee name
+- [x] Add Sign Up button linking to `/auth/sign-up` with token
 
-### Task 22: Create Storyteller Sign Up Page ⬜ PENDING
+**Completion Details**:
+- Created a server component to handle the story invite landing page.
+- The page fetches a storyteller using a token from the URL search parameters.
+- If the token is valid, it displays a welcome message with the storyteller's name.
+- A button links the storyteller to the sign-up page, passing the token forward to associate their new account with the invite.
+- If the token is invalid or missing, it displays an appropriate error message.
+- The page uses existing shadcn/ui components for a consistent look and feel.
+
+### Task 22: Create Storyteller Sign Up Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_signup/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_signup`
-- [ ] Create `page.tsx` file
-- [ ] Create form with email and password fields
-- [ ] Validate token from query parameter
-- [ ] Create Supabase auth account
-- [ ] Link account to storyteller record
-- [ ] Redirect to `/story_submit` after successful signup
+- [x] Create folder `app/story_signup`
+- [x] Create `page.tsx` file
+- [x] Create form with email and password fields
+- [x] Validate token from query parameter
+- [x] Create Supabase auth account
+- [x] Link account to storyteller record
+- [x] Redirect to `/story_submit` after successful signup
 
-### Task 23: Create Story Submission Page ⬜ PENDING
+**Completion Details**:
+- Created a client component for the sign-up page at `app/story_signup/page.tsx` with a nested form component.
+- Implemented a server action in `app/story_signup/actions.ts` to handle the sign-up logic securely.
+- The server action validates the invite token, creates a new user via Supabase Auth, and links the new auth user's ID to the corresponding `storytellers` record.
+- Upon successful sign-up and linking, the invite token is cleared from the database to prevent reuse.
+- The user is then redirected to the `/story_submit` page to continue the flow.
+- The form uses `useFormState` for handling states and displaying errors returned from the server action.
+
+### Task 23: Create Story Submission Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_submit/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_submit`
-- [ ] Create `page.tsx` file
-- [ ] Create form with three text areas:
-  - [ ] First area required
-  - [ ] Second and third optional
-- [ ] Save submission to `stories` table
-- [ ] Update storyteller record with submission timestamp
-- [ ] Redirect to thank you page after submission
+- [x] Create folder `app/story_submit`
+- [x] Create `page.tsx` file
+- [x] Create form with three text areas:
+  - [x] First area required
+  - [x] Second and third optional
+- [x] Save submission to `stories` table
+- [x] Update storyteller record with submission timestamp
+- [x] Redirect to thank you page after submission
 
-### Task 24: Create Story Thank You Page ⬜ PENDING
+**Completion Details**:
+- Created a secure data-fetching pipeline using a database view (`storyteller_details`) and a `SECURITY DEFINER` function to safely get the main user's email.
+- The main page component at `app/story_submit/page.tsx` authenticates the storyteller, fetches their details, and checks if a story has already been submitted.
+- The page displays a dynamic title indicating who the story is for (e.g., "Share your story about user@example.com").
+- A client-side form at `app/story_submit/form.tsx` uses `useFormState` to handle UI and validation.
+- A server action at `app/story_submit/actions.ts` securely processes the form, creates the story record in the database, and redirects to the thank you page.
+- The database schema includes an automatic trigger that updates the `story_submitted_at` timestamp on the `storytellers` record upon successful story insertion.
+
+### Task 24: Create Story Thank You Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_thank_you/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_thank_you`
-- [ ] Create `page.tsx` file
-- [ ] Display confirmation message
-- [ ] Provide link to return home
+- [x] Create folder `app/story_thank_you`
+- [x] Create `page.tsx` file
+- [x] Display confirmation message
+- [x] Provide link to return home
+
+**Completion Details**:
+- Created a simple, centered confirmation page at `app/story_thank_you/page.tsx`.
+- The page displays a clear "Thank You" message and a success icon.
+- It includes a button that provides an easy way for the user to navigate back to the home page.
 
 ## Component Reuse Tasks
 

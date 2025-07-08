@@ -49,6 +49,46 @@ export async function getStorytellerByToken(token: string) {
     .single();
 }
 
+export async function getStorytellerDetails() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  
+  if (!user) {
+    return null;
+  }
+
+  const { data, error } = await supabase
+    .from("storyteller_details")
+    .select("*")
+    .eq("storyteller_user_id", user.id)
+    .single();
+
+  if (error) {
+    console.error("Error fetching storyteller details:", error);
+    return null;
+  }
+  return data;
+}
+
+export async function getStorytellerByEmail(email: string) {
+  if (!email) return null;
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("storytellers")
+    .select("*")
+    .eq("email", email)
+    .single();
+  
+  if (error) {
+    // It's okay if no rows are found
+    if (error.code !== 'PGRST116') {
+      console.error("Error fetching storyteller by email:", error);
+    }
+    return null;
+  }
+  return data;
+}
+
 // Stories functions
 export async function getStoriesForUser(userId: string) {
   const supabase = await createClient();
@@ -105,6 +145,13 @@ export async function createCertificationLead(data: CertificationLeadInsert) {
 export async function createContactMessage(data: ContactMessageInsert) {
   const supabase = await createClient();
   return supabase.from("contact_messages").insert(data).select().single();
+}
+
+// General User functions
+export async function getUser() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 }
 
 // Helper function to check if user has completed onboarding
