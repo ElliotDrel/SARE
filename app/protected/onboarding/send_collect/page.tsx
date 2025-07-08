@@ -18,7 +18,6 @@ import {
   BarChart3
 } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
-import { getStoryCount } from "@/lib/supabase/database";
 import type { Storyteller } from "@/lib/supabase/types";
 
 // Metadata for this page
@@ -56,8 +55,11 @@ export default function SendCollectPage() {
       setStorytellers(storytellersData || []);
 
       // Fetch story count
-      const count = await getStoryCount(user.id);
-      setStoryCount(count);
+      const { count } = await supabase
+        .from("stories")
+        .select("*", { count: "exact", head: true })
+        .eq("user_id", user.id);
+      setStoryCount(count || 0);
 
     } catch (error) {
       console.error("Error fetching data:", error);
