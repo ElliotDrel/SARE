@@ -2,14 +2,16 @@ import { getStorytellerByToken } from "@/lib/supabase/database";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { notFound } from "next/navigation";
 
-export default async function StoryInvitePage({
-  searchParams,
-}: {
-  searchParams: { token?: string };
-}) {
-  const { token } = searchParams;
+type Props = {
+  params: { [key: string]: string | string[] | undefined };
+  searchParams: { [key: string]: string | string[] | undefined };
+};
+
+export default async function StoryInvitePage({ searchParams }: Props) {
+  const token = Array.isArray(searchParams.token)
+    ? searchParams.token[0]
+    : searchParams.token;
 
   if (!token) {
     return (
@@ -47,7 +49,7 @@ export default async function StoryInvitePage({
     <div className="flex items-center justify-center min-h-screen bg-gray-50">
       <Card className="w-full max-w-lg text-center">
         <CardHeader>
-          <CardTitle className="text-2xl">You're Invited!</CardTitle>
+          <CardTitle className="text-2xl">You&apos;re Invited!</CardTitle>
           <CardDescription>
             You have been invited by a SARE user to share a story about them.
           </CardDescription>

@@ -22,7 +22,7 @@ export default async function StorySubmitPage() {
         <Alert variant="destructive" className="w-full max-w-lg">
           <AlertTitle>Error</AlertTitle>
           <AlertDescription>
-            We could not find your storyteller details. It's possible you haven't been invited or there was an issue with your account setup. Please contact support.
+            We could not find your storyteller details. It&apos;s possible you haven&apos;t been invited or there was an issue with your account setup. Please contact support.
           </AlertDescription>
         </Alert>
       </div>

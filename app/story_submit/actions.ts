@@ -5,7 +5,7 @@ import { createStory, getStorytellerDetails } from "@/lib/supabase/database";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 
-export async function submitStory(prevState: any, formData: FormData) {
+export async function submitStory(prevState: { message?: string }, formData: FormData) {
   const supabase = await createClient();
 
   // 1. Get Logged In User

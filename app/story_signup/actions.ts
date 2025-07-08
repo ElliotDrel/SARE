@@ -5,7 +5,7 @@ import { getStorytellerByToken, updateStoryteller } from "@/lib/supabase/databas
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 
-export async function signup(prevState: any, formData: FormData) {
+export async function signup(prevState: { message?: string }, formData: FormData) {
   const email = formData.get("email") as string;
   const password = formData.get("password") as string;
   const token = formData.get("token") as string;
@@ -24,8 +24,8 @@ export async function signup(prevState: any, formData: FormData) {
     return { message: "This invitation link is invalid or has expired." };
   }
 
-  // Check if storyteller already has a user_id
-  if (storyteller.user_id) {
+  // Check if storyteller already has a storyteller_user_id (invite has been used)
+  if (storyteller.storyteller_user_id) {
     return { message: "This invitation has already been used." };
   }
 
