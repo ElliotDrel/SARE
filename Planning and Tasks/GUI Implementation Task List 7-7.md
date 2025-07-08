@@ -402,7 +402,7 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - [x] Parse token from URL query parameter
 - [x] Validate token against `storytellers` table
 - [x] Display invitee name
-- [x] Add Sign Up button linking to `/auth/sign-up` with token
+- [x] Add Sign Up button linking to `/story_signup` with token
 
 **Completion Details**:
 - Created a server component to handle the story invite landing page.

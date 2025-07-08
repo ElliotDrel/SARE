@@ -45,5 +45,6 @@ export async function submitStory(prevState: any, formData: FormData) {
 
   // 5. Revalidate and Redirect
   revalidatePath("/protected/onboarding/send_collect"); // To update the dashboard for the main user
+  revalidatePath("/protected/onboarding/report"); // To update the report for the main user
   redirect("/story_thank_you");
 } 

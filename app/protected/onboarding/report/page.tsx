@@ -17,7 +17,7 @@ export default async function ReportPage() {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return redirect("/login");
+    return redirect("/auth/login");
   }
 
   const [selfReflection, stories] = await Promise.all([

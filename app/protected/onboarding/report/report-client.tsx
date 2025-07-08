@@ -11,7 +11,7 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
-import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 import { saveAs } from "file-saver";
 
 type StoryWithStoryteller = Story & {
@@ -38,62 +38,95 @@ export default function ReportClient({
     setIsGenerating(true);
     try {
       const pdfDoc = await PDFDocument.create();
-      const page = pdfDoc.addPage();
-      const { width, height } = page.getSize();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
       const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
+      
+      let page = pdfDoc.addPage();
+      const { width, height } = page.getSize();
       const margin = 50;
       let y = height - margin;
 
-      const drawText = (
+      const drawWrappedText = (
         text: string,
-        x: number,
-        yPos: number,
-        isBold = false,
-        size = 12
+        options: {
+          font: PDFFont;
+          size: number;
+          lineHeight: number;
+          x: number;
+        }
       ) => {
-        page.drawText(text, {
-          x,
-          y: yPos,
-          font: isBold ? boldFont : font,
-          size,
-          color: rgb(0, 0, 0),
-        });
-        return yPos - size * 1.5;
+        const { font, size, lineHeight, x } = options;
+        const maxWidth = width - margin * 2;
+        const words = text.split(" ");
+        let currentLine = "";
+        const lines = [];
+
+        for (const word of words) {
+          const testLine = currentLine.length > 0 ? `${currentLine} ${word}` : word;
+          const testWidth = font.widthOfTextAtSize(testLine, size);
+          if (testWidth > maxWidth) {
+            lines.push(currentLine);
+            currentLine = word;
+          } else {
+            currentLine = testLine;
+          }
+        }
+        lines.push(currentLine);
+
+        const textHeight = lines.length * size * lineHeight;
+        if (y - textHeight < margin) {
+          page = pdfDoc.addPage();
+          y = page.getSize().height - margin;
+        }
+
+        for (const line of lines) {
+          if (y - size * lineHeight < margin) {
+            page = pdfDoc.addPage();
+            y = page.getSize().height - margin;
+          }
+          page.drawText(line, { x, y, font, size, color: rgb(0, 0, 0) });
+          y -= size * lineHeight;
+        }
       };
-      
-      y = drawText(`SARE Report for ${user.email}`, margin, y, true, 18);
+
+      drawWrappedText(`SARE Report for ${user.email}`, { font: boldFont, size: 18, lineHeight: 1.5, x: margin });
       y -= 20;
 
       // Self-Reflections
-      y = drawText("Your Self-Reflections", margin, y, true, 16);
+      drawWrappedText("Your Self-Reflections", { font: boldFont, size: 16, lineHeight: 1.5, x: margin });
       y -= 10;
       
       const reflection1 = selfReflection?.reflection_1 || "Not answered.";
-      y = drawText("1. A time I was at my best:", margin, y, true);
-      y = drawText(reflection1, margin, y);
+      drawWrappedText("1. A time I was at my best:", { font: boldFont, size: 12, lineHeight: 1.5, x: margin });
+      drawWrappedText(reflection1, { font: font, size: 12, lineHeight: 1.5, x: margin });
       y -= 10;
       
       const reflection2 = selfReflection?.reflection_2 || "Not answered.";
-      y = drawText("2. What makes it a story about you at your best?", margin, y, true);
-      y = drawText(reflection2, margin, y);
+      drawWrappedText("2. What makes it a story about you at your best?", { font: boldFont, size: 12, lineHeight: 1.5, x: margin });
+      drawWrappedText(reflection2, { font: font, size: 12, lineHeight: 1.5, x: margin });
       y -= 10;
       
       const reflection3 = selfReflection?.reflection_3 || "Not answered.";
-      y = drawText("3. What are the common themes?", margin, y, true);
-      y = drawText(reflection3, margin, y);
+      drawWrappedText("3. What are the common themes?", { font: boldFont, size: 12, lineHeight: 1.5, x: margin });
+      drawWrappedText(reflection3, { font: font, size: 12, lineHeight: 1.5, x: margin });
       y -= 20;
 
       // Collected Stories
-      y = drawText("Collected Stories", margin, y, true, 16);
+      drawWrappedText("Collected Stories", { font: boldFont, size: 16, lineHeight: 1.5, x: margin });
+      y -=10;
 
       stories.forEach((story) => {
-        y -= 10;
         const storytellerName = story.storyteller?.name || "Anonymous";
-        y = drawText(`Story from: ${storytellerName}`, margin, y, true);
-        y = drawText(story.story_part_1, margin, y);
-        if(story.story_part_2) y = drawText(story.story_part_2, margin, y);
-        if(story.story_part_3) y = drawText(story.story_part_3, margin, y);
+        drawWrappedText(`Story from: ${storytellerName}`, { font: boldFont, size: 12, lineHeight: 1.5, x: margin });
+        
+        drawWrappedText(story.story_part_1, { font: font, size: 12, lineHeight: 1.5, x: margin });
+        if(story.story_part_2) {
+            drawWrappedText(story.story_part_2, { font: font, size: 12, lineHeight: 1.5, x: margin });
+        }
+        if(story.story_part_3) {
+            drawWrappedText(story.story_part_3, { font: font, size: 12, lineHeight: 1.5, x: margin });
+        }
+        y -= 10; // Add space between stories
       });
 
       const pdfBytes = await pdfDoc.save();
