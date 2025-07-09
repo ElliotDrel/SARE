@@ -239,25 +239,29 @@ export async function generateSAREReport(data: ReportData): Promise<Uint8Array> 
     });
   }
 
-  // Footer
-  checkPageSpace(60);
-  yPosition = 50;
-  
-  page.drawText('SARE - See Yourself at Your Best', {
-    x: 50,
-    y: yPosition,
-    size: 10,
-    font: helveticaFont,
-    color: lightGray,
-  });
+  // Finalize: Add footers to all pages
+  const totalPages = pdfDoc.getPageCount();
+  const pages = pdfDoc.getPages();
+  for (let i = 0; i < totalPages; i++) {
+    const currentPage = pages[i];
+    const pageNum = i + 1;
 
-  page.drawText(`Page 1 of ${pdfDoc.getPageCount()}`, {
-    x: 500,
-    y: yPosition,
-    size: 10,
-    font: helveticaFont,
-    color: lightGray,
-  });
+    currentPage.drawText('SARE - See Yourself at Your Best', {
+      x: 50,
+      y: 50,
+      size: 10,
+      font: helveticaFont,
+      color: lightGray,
+    });
+
+    currentPage.drawText(`Page ${pageNum} of ${totalPages}`, {
+      x: 500,
+      y: 50,
+      size: 10,
+      font: helveticaFont,
+      color: lightGray,
+    });
+  }
 
   return await pdfDoc.save();
 } 

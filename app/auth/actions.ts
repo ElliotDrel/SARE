@@ -1,7 +1,7 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getStorytellerByToken } from "@/lib/supabase/database";
+import { getStorytellerByToken, updateStorytellerByToken } from "@/lib/supabase/database";
 import { redirect } from "next/navigation";
 
 export async function signUp(formData: FormData) {
@@ -42,11 +42,9 @@ export async function signUp(formData: FormData) {
       }
 
       // Update the storyteller record with the new user_id
-      // Note: We'll create a new function for this since updateStoryteller expects the storyteller's user_id
-      const { error: updateError } = await supabase
-        .from("storytellers")
-        .update({ user_id: authData.user.id })
-        .eq("invite_token", token);
+      const { error: updateError } = await updateStorytellerByToken(token, {
+        user_id: authData.user.id,
+      });
 
       if (updateError) {
         throw updateError;

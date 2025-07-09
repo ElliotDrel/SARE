@@ -27,59 +27,29 @@ export default function StorySubmitForm({ storyteller }: StorySubmitFormProps) {
   const part3Count = storyPart3.length;
 
   const autoSave = useCallback(async () => {
-    // Log for validation
-    console.log(
-      "Attempting auto-save. Part 1:",
-      !!storyPart1.trim(),
-      "Part 2:",
-      !!storyPart2.trim(),
-      "Part 3:",
-      !!storyPart3.trim(),
-    );
-
     // FIX: Allow saving if any part has content
     if (!storyPart1.trim() && !storyPart2.trim() && !storyPart3.trim()) {
       return; // Don't save if all parts are empty
     }
 
     setSaveStatus("saving");
-    
+
     try {
       const supabase = createClient();
-      
-      // Check if story already exists
-      const { data: existingStory } = await supabase
-        .from("stories")
-        .select("id")
-        .eq("storyteller_id", storyteller.id)
-        .single();
 
-      if (existingStory) {
-        // Update existing story
-        const { error } = await supabase
-          .from("stories")
-          .update({
-            story_part_1: storyPart1,
-            story_part_2: storyPart2 || null,
-            story_part_3: storyPart3 || null,
-          })
-          .eq("storyteller_id", storyteller.id);
+      // Use upsert to simplify logic: update if exists, insert if not.
+      const { error } = await supabase.from("stories").upsert(
+        {
+          storyteller_id: storyteller.id,
+          user_id: storyteller.user_id,
+          story_part_1: storyPart1,
+          story_part_2: storyPart2 || null,
+          story_part_3: storyPart3 || null,
+        },
+        { onConflict: "storyteller_id" },
+      );
 
-        if (error) throw error;
-      } else {
-        // Create new story draft (without submission timestamp)
-        const { error } = await supabase
-          .from("stories")
-          .insert({
-            storyteller_id: storyteller.id,
-            user_id: storyteller.user_id,
-            story_part_1: storyPart1,
-            story_part_2: storyPart2 || null,
-            story_part_3: storyPart3 || null,
-          });
-
-        if (error) throw error;
-      }
+      if (error) throw error;
 
       setSaveStatus("saved");
       setTimeout(() => setSaveStatus(null), 2000);
@@ -116,17 +86,23 @@ export default function StorySubmitForm({ storyteller }: StorySubmitFormProps) {
       // Submit the story with timestamp
       const { error: storyError } = await supabase
         .from("stories")
-        .upsert({
-          storyteller_id: storyteller.id,
-          user_id: storyteller.user_id,
-          story_part_1: storyPart1,
-          story_part_2: storyPart2 || null,
-          story_part_3: storyPart3 || null,
-          submitted_at: new Date().toISOString(),
-        });
+        .upsert(
+          {
+            storyteller_id: storyteller.id,
+            user_id: storyteller.user_id,
+            story_part_1: storyPart1,
+            story_part_2: storyPart2 || null,
+            story_part_3: storyPart3 || null,
+            submitted_at: new Date().toISOString(),
+          },
+          { onConflict: "storyteller_id" }
+        );
 
       if (storyError) throw storyError;
 
+      // The database trigger 'update_storyteller_on_story_submit' handles this automatically.
+      // The manual update below is redundant and has been removed.
+      /*
       // Update storyteller record with submission timestamp
       const { error: storytellerError } = await supabase
         .from("storytellers")
@@ -136,6 +112,7 @@ export default function StorySubmitForm({ storyteller }: StorySubmitFormProps) {
         .eq("id", storyteller.id);
 
       if (storytellerError) throw storytellerError;
+      */
 
       // Redirect to thank you page
       router.push("/story_thank_you");
