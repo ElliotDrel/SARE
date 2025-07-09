@@ -372,17 +372,30 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 - Integrated with existing database functions (upsertSelfReflection, getSelfReflection)
 - Created meaningful reflection questions focused on peak performance, natural talents, and impact
 
-### Task 20: Create Report Page ⬜ PENDING
+### Task 20: Create Report Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/protected/onboarding/report/page.tsx`  
 **Details**:
-- [ ] Create folder `app/protected/onboarding/report`
-- [ ] Create `page.tsx` file
-- [ ] Query and display all collected stories
-- [ ] Create collapsible sections for each story
-- [ ] Display self-reflections
-- [ ] Implement PDF export using pdf-lib (already installed)
-- [ ] Add download button for PDF
+- [x] Create folder `app/protected/onboarding/report`
+- [x] Create `page.tsx` file
+- [x] Query and display all collected stories
+- [x] Create collapsible sections for each story
+- [x] Display self-reflections
+- [x] Implement PDF export using pdf-lib (installed during implementation)
+- [x] Add download button for PDF
+
+**Completion Details**:
+- Created comprehensive report page displaying stories and self-reflections
+- Implemented collapsible story sections with storyteller information and timestamps
+- Added 3-card summary dashboard showing stories collected, reflections completed, and report status
+- Built PDF export functionality using pdf-lib with SARE branding and professional layout
+- Created proper error handling and loading states throughout the page
+- Added conditional report generation based on completion criteria (≥1 story + all 3 reflections)
+- Implemented responsive design with mobile-first approach
+- Used consistent brand styling with primary-teal and accent-coral colors
+- Added navigation links back to previous steps and forward to dashboard
+- Created Collapsible UI component for expandable story sections
+- Built PDF generator utility with proper text wrapping and multi-page support
 
 ## Storyteller Flow Tasks
 
