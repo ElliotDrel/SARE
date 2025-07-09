@@ -3,15 +3,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter }
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
 
-type Props = {
-  params: { [key: string]: string | string[] | undefined };
-  searchParams: { [key: string]: string | string[] | undefined };
-};
+interface StoryInvitePageProps {
+  searchParams: Promise<{
+    token?: string;
+  }>;
+}
 
-export default async function StoryInvitePage({ searchParams }: Props) {
-  const token = Array.isArray(searchParams.token)
-    ? searchParams.token[0]
-    : searchParams.token;
+export default async function StoryInvitePage({ searchParams }: StoryInvitePageProps) {
+  const params = await searchParams;
+  const token = params?.token;
 
   if (!token) {
     return (
