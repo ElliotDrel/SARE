@@ -1,17 +1,23 @@
 import { redirect } from "next/navigation";
 import StorySignupForm from "./story-signup-form";
 
-// Define the standard props for a Next.js page component
-type Props = {
-  searchParams: { [key: string]: string | string[] | undefined };
+// Update prop type: searchParams is now a Promise (per Next.js 15)
+type StorySignupPageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 };
 
-export default function StorySignupPage({ searchParams }: Props) {
-  // Access the token and handle potential type variations
-  const token = searchParams.token;
+export default async function StorySignupPage({
+  searchParams,
+}: StorySignupPageProps) {
+  // Await the promise to get the actual search params object
+  const resolvedSearchParams = await searchParams;
+  const token =
+    typeof resolvedSearchParams.token === "string"
+      ? resolvedSearchParams.token
+      : undefined;
 
-  // Redirect if no token is present or if it's an array (which is unexpected here)
-  if (!token || Array.isArray(token)) {
+  // Redirect if token is missing
+  if (!token) {
     redirect("/");
   }
 
