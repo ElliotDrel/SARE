@@ -58,10 +58,10 @@ export default function StorySubmissionForm({
     formData.append('storyteller_id', storyteller.id)
     formData.append('user_id', storyteller.user_id)
 
-    const result = await submitStory(formData)
+    const result = await submitStory({ message: '' }, formData)
 
-    if (result.error) {
-      setError(result.error)
+    if (result.message) {
+      setError(result.message)
       setIsSubmitting(false)
     } else {
       router.push('/story_thank_you')

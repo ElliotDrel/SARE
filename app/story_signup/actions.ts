@@ -50,7 +50,7 @@ export async function signup(prevState: { message?: string }, formData: FormData
   // 3. Link the new user to the storyteller record
   const { error: updateError } = await updateStoryteller(storyteller.id, {
     storyteller_user_id: authData.user.id,
-    invite_token: undefined, // Clear the token so it can't be reused
+    invite_token: null, // Clear the token so it can't be reused
   });
 
   if (updateError) {
