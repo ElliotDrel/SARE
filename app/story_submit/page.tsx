@@ -2,13 +2,18 @@ import { createClient } from "@/lib/supabase/server";
 import { getStorytellerByToken } from "@/lib/supabase/database";
 import { redirect } from "next/navigation";
 import StorySubmitForm from "./StorySubmitForm";
+import { Metadata } from "next";
 
-interface StorySubmitPageProps {
-  searchParams: { token?: string };
-}
+type StorySubmitPageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
 export default async function StorySubmitPage({ searchParams }: StorySubmitPageProps) {
-  const { token } = searchParams;
+  const resolvedSearchParams = await searchParams;
+  const token =
+    typeof resolvedSearchParams.token === "string"
+      ? resolvedSearchParams.token
+      : undefined;
 
   // Redirect if no token provided
   if (!token) {
@@ -17,7 +22,10 @@ export default async function StorySubmitPage({ searchParams }: StorySubmitPageP
 
   // Get current user
   const supabase = await createClient();
-  const { data: { user }, error: authError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: authError,
+  } = await supabase.auth.getUser();
 
   // Redirect to signup if not authenticated
   if (authError || !user) {
@@ -25,7 +33,16 @@ export default async function StorySubmitPage({ searchParams }: StorySubmitPageP
   }
 
   // Validate token and get storyteller information
-  const { data: storyteller, error: storytellerError } = await getStorytellerByToken(token);
+  let storyteller;
+  let storytellerError;
+  try {
+    const { data, error } = await getStorytellerByToken(token);
+    if (error) throw error;
+    storyteller = data;
+  } catch (e) {
+    console.error("Error fetching storyteller for story submission:", e);
+    storytellerError = e;
+  }
 
   if (storytellerError || !storyteller) {
     redirect("/");
@@ -76,7 +93,9 @@ export default async function StorySubmitPage({ searchParams }: StorySubmitPageP
   );
 }
 
-export const metadata = {
-  title: "Submit Your Story - SARE",
-  description: "Share your story for the SARE exercise."
-}; 
+export async function generateMetadata(): Promise<Metadata> {
+  return {
+    title: "Submit Your Story - SARE",
+    description: "Share your story for the SARE exercise.",
+  };
+} 
