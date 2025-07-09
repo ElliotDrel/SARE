@@ -211,9 +211,9 @@ class PDFGenerator {
     this.addStories(this.stories);
   }
 
-  private user: User;
-  private selfReflection: SelfReflection | null;
-  private stories: StoryWithStoryteller[];
+  private user!: User;
+  private selfReflection!: SelfReflection | null;
+  private stories!: StoryWithStoryteller[];
 
   public static async create(options: PDFGeneratorOptions): Promise<PDFGenerator> {
     const pdfDoc = await PDFDocument.create();

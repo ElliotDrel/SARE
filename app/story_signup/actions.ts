@@ -73,10 +73,18 @@ export async function signup(
   }
 
   // 3. Link the new user to the storyteller record
-  const { error: updateError } = await updateStoryteller(storyteller.id, {
+  console.log("Before token update - storyteller.invite_token:", storyteller.invite_token);
+  const updateData = {
     storyteller_user_id: authData.user.id,
     invite_token: undefined, // Clear the token so it can't be reused
-  });
+  };
+  console.log("Update data being sent:", updateData);
+  
+  const { data: updatedStoryteller, error: updateError } = await updateStoryteller(storyteller.id, updateData);
+  
+  if (updatedStoryteller) {
+    console.log("After token update - updated storyteller invite_token:", updatedStoryteller.invite_token);
+  }
 
   if (updateError) {
     console.error("Account linking error:", updateError);
