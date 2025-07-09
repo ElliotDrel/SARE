@@ -57,9 +57,13 @@ export default function StorySignupPage() {
       // If successful, redirect to story submission
       router.push(`/story_submit?token=${token}`);
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Signup error:", error);
-      setError(error.message || "An error occurred during signup. Please try again.");
+      if (error instanceof Error) {
+        setError(error.message);
+      } else {
+        setError("An error occurred during signup. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }

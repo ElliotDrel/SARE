@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,36 +10,37 @@ import type { Storyteller } from "@/lib/supabase/types";
 
 interface StorySubmitFormProps {
   storyteller: Storyteller;
-  token: string;
 }
 
-export default function StorySubmitForm({ storyteller, token }: StorySubmitFormProps) {
+export default function StorySubmitForm({ storyteller }: StorySubmitFormProps) {
   const router = useRouter();
   const [storyPart1, setStoryPart1] = useState("");
   const [storyPart2, setStoryPart2] = useState("");
   const [storyPart3, setStoryPart3] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error" | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   // Character counts
   const part1Count = storyPart1.length;
   const part2Count = storyPart2.length;
   const part3Count = storyPart3.length;
 
-  // Auto-save functionality (similar to self-reflection)
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (storyPart1.trim()) {
-        autoSave();
-      }
-    }, 2000); // Auto-save after 2 seconds of inactivity
+  const autoSave = useCallback(async () => {
+    // Log for validation
+    console.log(
+      "Attempting auto-save. Part 1:",
+      !!storyPart1.trim(),
+      "Part 2:",
+      !!storyPart2.trim(),
+      "Part 3:",
+      !!storyPart3.trim(),
+    );
 
-    return () => clearTimeout(timeoutId);
-  }, [storyPart1, storyPart2, storyPart3]);
-
-  const autoSave = async () => {
-    if (!storyPart1.trim()) return; // Don't save if main story is empty
+    // FIX: Allow saving if any part has content
+    if (!storyPart1.trim() && !storyPart2.trim() && !storyPart3.trim()) {
+      return; // Don't save if all parts are empty
+    }
 
     setSaveStatus("saving");
     
@@ -87,18 +88,27 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
       setSaveStatus("error");
       setTimeout(() => setSaveStatus(null), 3000);
     }
-  };
+  }, [storyPart1, storyPart2, storyPart3, storyteller.id, storyteller.user_id]);
+
+  // Auto-save functionality
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      autoSave();
+    }, 2000); // Auto-save after 2 seconds of inactivity
+
+    return () => clearTimeout(timeoutId);
+  }, [storyPart1, storyPart2, storyPart3, autoSave]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
     if (!storyPart1.trim()) {
-      setError("Please share your story in the first section before submitting.");
+      setSubmitError("Please share your story in the first section before submitting.");
       return;
     }
 
     setIsSubmitting(true);
-    setError(null);
+    setSubmitError(null);
 
     try {
       const supabase = createClient();
@@ -130,9 +140,13 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
       // Redirect to thank you page
       router.push("/story_thank_you");
       
-    } catch (error: any) {
+    } catch (error) {
       console.error("Submission error:", error);
-      setError(error.message || "An error occurred while submitting your story. Please try again.");
+      if (error instanceof Error) {
+        setSubmitError(error.message);
+      } else {
+        setSubmitError("An error occurred while submitting your story. Please try again.");
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -147,7 +161,7 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
           .from("stories")
           .select("*")
           .eq("storyteller_id", storyteller.id)
-          .eq("submitted_at", null) // Only load drafts
+          .is("submitted_at", null) // Only load drafts
           .single();
 
         if (story) {
@@ -155,7 +169,7 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
           setStoryPart2(story.story_part_2 || "");
           setStoryPart3(story.story_part_3 || "");
         }
-      } catch (error) {
+      } catch {
         // No existing draft, that's fine
       }
     };
@@ -177,6 +191,13 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
           {saveStatus === "error" && (
             <p className="text-sm text-red-600">Error saving draft</p>
           )}
+        </div>
+      )}
+
+      {/* Error Message */}
+      {submitError && (
+        <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-center">
+          <p className="text-red-600 text-sm">{submitError}</p>
         </div>
       )}
 
@@ -256,40 +277,23 @@ export default function StorySubmitForm({ storyteller, token }: StorySubmitFormP
         </div>
       </div>
 
-      {/* Error Message */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4">
-          <p className="text-red-600 text-sm">{error}</p>
-        </div>
-      )}
-
       {/* Submit Button */}
-      <div className="text-center pt-6">
+      <div className="text-center">
         <Button
           type="submit"
-          disabled={isSubmitting || !storyPart1.trim()}
-          className="px-12 py-4 bg-accent-coral hover:bg-accent-coral/90 text-white font-medium text-lg"
+          disabled={isSubmitting}
+          className="w-full max-w-xs bg-accent-coral hover:bg-accent-coral/90 text-white font-medium py-3 text-lg"
         >
-          {isSubmitting ? "Submitting Your Story..." : "Submit Your Story"}
+          {isSubmitting ? "Submitting..." : "Submit Your Story"}
         </Button>
-        {!storyPart1.trim() && (
-          <p className="text-sm text-neutral-500 mt-2">
-            Please share your story in the first section to submit
-          </p>
-        )}
       </div>
 
-      {/* Help Text */}
-      <div className="bg-neutral-50 rounded-lg p-6">
-        <h3 className="heading-sm text-neutral-800 mb-3">Tips for a Great Story:</h3>
-        <ul className="space-y-2 text-sm text-neutral-600">
-          <li>• Be specific about what you observed</li>
-          <li>• Focus on the person's actions, behaviors, and impact</li>
-          <li>• Describe the situation and context</li>
-          <li>• Include how it made you feel or what you learned</li>
-          <li>• There are no wrong answers - your perspective matters</li>
-        </ul>
+      {/* Final note */}
+      <div className="text-center">
+        <p className="text-sm text-neutral-600">
+          Once you submit, you won&apos;t be able to edit your story.
+        </p>
       </div>
     </form>
   );
-} 
+}

@@ -2,12 +2,18 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getStorytellerByToken } from "@/lib/supabase/database";
 
-interface StoryInvitePageProps {
-  searchParams: { token?: string };
-}
+type StoryInvitePageProps = {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
+};
 
-export default async function StoryInvitePage({ searchParams }: StoryInvitePageProps) {
-  const { token } = searchParams;
+export default async function StoryInvitePage({
+  searchParams,
+}: StoryInvitePageProps) {
+  const resolvedSearchParams = await searchParams;
+  const token =
+    typeof resolvedSearchParams.token === "string"
+      ? resolvedSearchParams.token
+      : undefined;
 
   // Redirect if no token provided
   if (!token) {
@@ -48,10 +54,10 @@ export default async function StoryInvitePage({ searchParams }: StoryInvitePageP
         {/* Header Section */}
         <div className="text-center mb-8">
           <h1 className="heading-xl text-primary-teal mb-4">
-            You're Invited to Share Your Story
+            You&apos;re Invited to Share Your Story
           </h1>
           <p className="body-lg text-neutral-600">
-            You've been invited to participate in the SARE exercise by sharing a story about someone at their best.
+            You&apos;ve been invited to participate in the SARE exercise by sharing a story about someone at their best.
           </p>
         </div>
 
@@ -72,7 +78,7 @@ export default async function StoryInvitePage({ searchParams }: StoryInvitePageP
               <div className="bg-green-50 border-2 border-green-200 rounded-lg p-6 mb-6">
                 <h3 className="heading-md text-green-800 mb-2">Story Already Submitted</h3>
                 <p className="body-md text-green-700">
-                  Thank you! You've already submitted your story on{" "}
+                  Thank you! You&apos;ve already submitted your story on{" "}
                   {new Date(storyteller.story_submitted_at!).toLocaleDateString()}.
                 </p>
               </div>
@@ -89,10 +95,10 @@ export default async function StoryInvitePage({ searchParams }: StoryInvitePageP
               <div className="bg-accent-coral/10 border-2 border-accent-coral/30 rounded-lg p-6 mb-6">
                 <h3 className="heading-md text-accent-coral mb-2">Ready to Get Started?</h3>
                 <p className="body-md text-neutral-700 mb-4">
-                  To submit your story, you'll need to create a quick account. This helps us keep your story secure and connected to the right person.
+                  To submit your story, you&apos;ll need to create a quick account. This helps us keep your story secure and connected to the right person.
                 </p>
                 <p className="body-sm text-neutral-600">
-                  Don't worry - the process is simple and only takes a minute!
+                  Don&apos;t worry - the process is simple and only takes a minute!
                 </p>
               </div>
               
@@ -121,7 +127,7 @@ export default async function StoryInvitePage({ searchParams }: StoryInvitePageP
               </div>
               <div className="flex items-start gap-3">
                 <div className="w-6 h-6 bg-primary-teal text-white rounded-full flex items-center justify-center text-sm font-bold mt-0.5">3</div>
-                <p className="body-md text-neutral-700">Submit and you're done!</p>
+                <p className="body-md text-neutral-700">Submit and you&apos;re done!</p>
               </div>
             </div>
           </div>
