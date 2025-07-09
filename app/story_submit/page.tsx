@@ -20,9 +20,17 @@ export default async function StorySubmitPage() {
     return (
        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
         <Alert variant="destructive" className="w-full max-w-lg">
-          <AlertTitle>Error</AlertTitle>
+          <AlertTitle>Storyteller Account Not Found</AlertTitle>
           <AlertDescription>
-            We could not find your storyteller details. It&apos;s possible you haven&apos;t been invited or there was an issue with your account setup. Please contact support.
+            We couldn&apos;t find your storyteller profile. This could mean:
+            <ul className="list-disc list-inside mt-2 space-y-1">
+              <li>You haven&apos;t been invited to share a story yet</li>
+              <li>Your invitation link may have expired</li>
+              <li>There was an issue linking your account to the invitation</li>
+            </ul>
+            <p className="mt-2 font-medium">
+              Please contact the person who invited you or reach out to our support team for assistance.
+            </p>
           </AlertDescription>
         </Alert>
       </div>

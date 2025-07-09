@@ -22,12 +22,18 @@ function SubmitButton() {
 }
 
 export function StorytellerSignUpForm({ token }: { token: string | null }) {
-  const [state, formAction] = useFormState(signup, initialState);
+  const boundSignup = (prevState: { message: string }, formData: FormData) => 
+    signup(prevState, token || "", formData);
+  const [state, formAction] = useFormState(boundSignup, initialState);
 
   return (
     <CardContent>
+      {state.message && (
+        <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700">{state.message}</p>
+        </div>
+      )}
       <form action={formAction}>
-        <input type="hidden" name="token" value={token || ""} />
         <div className="flex flex-col gap-6">
           <div className="grid gap-2">
             <Label htmlFor="email">Email</Label>

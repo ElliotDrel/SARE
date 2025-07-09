@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useFormState, useFormStatus } from "react-dom";
 import { submitStory } from "./actions";
 import { Button } from "@/components/ui/button";
@@ -22,9 +23,17 @@ function SubmitButton() {
 
 export function StorySubmitForm() {
   const [state, formAction] = useFormState(submitStory, initialState);
+  const [storyPart1Length, setStoryPart1Length] = useState(0);
+  const [storyPart2Length, setStoryPart2Length] = useState(0);
+  const [storyPart3Length, setStoryPart3Length] = useState(0);
 
   return (
     <CardContent>
+      {state.message && (
+        <div className="mb-4 p-3 rounded-md bg-red-50 border border-red-200">
+          <p className="text-sm text-red-700">{state.message}</p>
+        </div>
+      )}
       <form action={formAction} className="flex flex-col gap-6">
         <div className="grid gap-2">
           <Label htmlFor="story_part_1">
@@ -36,7 +45,14 @@ export function StorySubmitForm() {
             required
             rows={6}
             placeholder="Share the first part of your story here..."
+            onChange={(e) => setStoryPart1Length(e.target.value.length)}
           />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Required</span>
+            <span className={storyPart1Length > 5000 ? "text-red-500" : ""}>
+              {storyPart1Length}/5000 characters
+            </span>
+          </div>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="story_part_2">
@@ -47,7 +63,14 @@ export function StorySubmitForm() {
             name="story_part_2"
             rows={4}
             placeholder="e.g., Leadership, compassion, creativity..."
+            onChange={(e) => setStoryPart2Length(e.target.value.length)}
           />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Optional</span>
+            <span className={storyPart2Length > 5000 ? "text-red-500" : ""}>
+              {storyPart2Length}/5000 characters
+            </span>
+          </div>
         </div>
         <div className="grid gap-2">
           <Label htmlFor="story_part_3">
@@ -58,12 +81,16 @@ export function StorySubmitForm() {
             name="story_part_3"
             rows={4}
             placeholder="e.g., It inspired our team, it made me feel valued..."
+            onChange={(e) => setStoryPart3Length(e.target.value.length)}
           />
+          <div className="flex justify-between text-sm text-gray-500">
+            <span>Optional</span>
+            <span className={storyPart3Length > 5000 ? "text-red-500" : ""}>
+              {storyPart3Length}/5000 characters
+            </span>
+          </div>
         </div>
 
-        {state?.message && (
-          <p className="text-sm text-red-500 text-center">{state.message}</p>
-        )}
         <SubmitButton />
       </form>
     </CardContent>
