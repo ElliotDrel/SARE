@@ -1,0 +1,315 @@
+---
+description:
+globs:
+alwaysApply: true
+---
+# Drel Solutions Development Rules
+
+This file provides comprehensive development guidance for the AI Model Advisor application.
+
+## Quick Start Commands
+
+### Frontend Development
+```bash
+npm run dev          # Start Vite dev server (port 6756)
+npm run build        # Production build
+npm run build:dev    # Development build
+npm run preview      # Preview production build
+npm run lint         # Run ESLint
+```
+
+### Backend Development
+```bash
+npm run start:backend  # Start FastAPI backend (port 3298)
+npm run start:full     # Start both frontend and backend
+cd backend && python main.py  # Direct backend start
+```
+
+### Testing Commands
+```bash
+npm run test           # Vitest unit tests (watch mode)
+npm run test:ui        # Vitest with UI
+npm run test:run       # Run tests once
+npm run test:coverage  # Coverage testing (80% minimum)
+npm run test:e2e       # Playwright E2E tests
+npm run test:e2e:ui    # Playwright with UI
+npm run test:all       # All tests
+npm run test:ci        # CI testing with coverage
+```
+
+## Architecture Rules
+
+### Frontend Stack Requirements
+- **Framework**: React 18 + TypeScript + Vite only
+- **Styling**: Tailwind CSS with Shadcn UI components exclusively
+- **Routing**: React Router DOM with client-side routing
+- **State Management**: TanStack Query for server state, React hooks for local
+- **Forms**: React Hook Form with Zod validation
+- **Testing**: Vitest + React Testing Library (unit), Playwright (e2e)
+
+### Backend Stack Requirements
+- **Framework**: FastAPI (Python) only
+- **Port**: Backend must run on port 3298
+- **API Endpoint**: `/api/model_search` for model recommendations
+- **Service**: OpenAI integration for AI model recommendations
+
+## Code Organization Rules
+
+### Directory Structure Requirements
+```
+src/
+├── pages/          # Route components only
+├── components/ui/  # Shadcn UI components only
+├── hooks/          # Custom React hooks
+├── lib/            # Utilities (utils.ts with cn helper)
+└── test/           # Unit test files
+
+backend/
+├── main.py                    # FastAPI app entry point
+├── services/openai_service.py # OpenAI integration
+└── requirements.txt           # Python dependencies
+```
+
+### File Naming Rules
+1. Use PascalCase for React components
+2. Use kebab-case for utility files
+3. Use camelCase for TypeScript files
+4. Maximum 250 lines per file
+5. Test files must match component names with `.test.ts` suffix
+
+## Development Standards
+
+### TypeScript Requirements
+- TypeScript strict mode must be enabled
+- All components must be typed
+- No `any` types allowed
+- Use proper interfaces for props and data structures
+
+### React Component Rules
+```typescript
+// Good: Proper component structure
+interface ComponentProps {
+  title: string;
+  onClick: () => void;
+}
+
+export const Component: React.FC<ComponentProps> = ({ title, onClick }) => {
+  return (
+    <button onClick={onClick} className="btn-primary">
+      {title}
+    </button>
+  );
+};
+
+// Bad: Untyped component
+export const Component = ({ title, onClick }) => {
+  return <button onClick={onClick}>{title}</button>;
+};
+```
+
+### Styling Rules
+1. Use Tailwind CSS classes exclusively
+2. Use Shadcn UI components when available
+3. Use `@/` path alias for `src/` imports
+4. Follow Tailwind's utility-first approach
+5. Use `cn()` helper from `lib/utils.ts` for conditional classes
+
+### API Integration Rules
+```typescript
+// Good: TanStack Query usage
+const { data, isLoading, error } = useQuery({
+  queryKey: ['modelSearch', query],
+  queryFn: () => searchModels(query),
+  enabled: !!query
+});
+
+// Bad: Direct fetch usage
+useEffect(() => {
+  fetch('/api/model_search')
+    .then(res => res.json())
+    .then(setData);
+}, []);
+```
+
+## Testing Requirements
+
+### Unit Testing Rules
+- 80% minimum coverage (branches, functions, lines, statements)
+- Test all critical user interactions
+- Mock external dependencies
+- Use React Testing Library for component tests
+
+### E2E Testing Rules
+- Test critical user journeys with Playwright
+- Test on Chromium and Firefox (CI)
+- Include mobile Chrome testing
+- Tests must pass for deployment
+
+### Test Structure
+```typescript
+// Good: Proper test structure
+describe('ModelAdvisor', () => {
+  it('should display model recommendations when query is submitted', async () => {
+    render(<ModelAdvisor />);
+    
+    const input = screen.getByPlaceholderText(/search for models/i);
+    const submitButton = screen.getByRole('button', { name: /search/i });
+    
+    await user.type(input, 'text generation');
+    await user.click(submitButton);
+    
+    expect(await screen.findByText(/recommendations/i)).toBeInTheDocument();
+  });
+});
+```
+
+## API Design Rules
+
+### Backend Endpoint Requirements
+- RESTful API design
+- Proper CORS configuration
+- JSON request/response format
+- Error handling with appropriate HTTP status codes
+
+### Model Search API
+```typescript
+// Request format
+interface ModelSearchRequest {
+  query: string;
+}
+
+// Response format
+interface ModelSearchResponse {
+  recommendations: ModelRecommendation[];
+}
+
+interface ModelRecommendation {
+  name: string;
+  provider: string;
+  capabilities: string[];
+  pricing: string;
+  rationale: string;
+}
+```
+
+## Environment Setup Rules
+
+### Required Dependencies
+- Node.js 18+
+- Python 3.9+
+- OpenAI API key in `.env` file
+
+### Port Configuration
+- Frontend development server: 6756
+- Backend FastAPI server: 3298
+
+### Environment Variables
+```bash
+# Required in .env
+OPENAI_API_KEY=your_openai_api_key_here
+```
+
+## Deployment Rules
+
+### Build Process
+1. Tests must pass before build
+2. ESLint must pass without errors
+3. Build command: `npm run test:run && npm run build`
+4. Only tested code reaches production
+
+### Vercel Integration
+- Speed Insights and Analytics enabled
+- Automatic deployments on main branch
+- Preview deployments for pull requests
+
+## Model Documentation System
+
+### Documentation Requirements
+- Comprehensive model specs in `model_docs/` and `public/model_docs/`
+- Include capabilities, pricing, speed, accuracy for all models
+- Support for Anthropic, Google, and OpenAI models
+- Documentation used by OpenAI service for recommendations
+
+## Git Workflow Rules
+
+### Branch Naming
+- `feature/` for new features
+- `bugfix/` for bug fixes
+- `hotfix/` for critical fixes
+
+### Commit Messages
+- Use conventional commits format
+- Include scope when applicable
+- Keep messages under 72 characters
+
+### Pull Request Rules
+- All tests must pass
+- Code review required
+- No direct pushes to main branch
+
+## Performance Rules
+
+### Frontend Performance
+- Lazy load route components
+- Optimize bundle size with Vite
+- Use React.memo for expensive components
+- Implement proper loading states
+
+### Backend Performance
+- Efficient OpenAI API usage
+- Proper error handling
+- Response time optimization
+
+## Error Handling Rules
+
+### Frontend Error Handling
+```typescript
+// Good: Proper error boundaries and user feedback
+const { data, error, isLoading } = useQuery({
+  queryKey: ['modelSearch'],
+  queryFn: searchModels,
+  onError: (error) => {
+    toast({
+      title: "Search Failed",
+      description: error.message,
+      variant: "destructive"
+    });
+  }
+});
+```
+
+### Backend Error Handling
+```python
+# Good: Proper FastAPI exception handling
+@app.exception_handler(ValueError)
+async def validation_exception_handler(request: Request, exc: ValueError):
+    return JSONResponse(
+        status_code=400,
+        content={"detail": str(exc)}
+    )
+```
+
+## Security Rules
+
+### API Security
+- Validate all inputs
+- Rate limiting on endpoints
+- Secure OpenAI API key storage
+- CORS properly configured
+
+### Frontend Security
+- Sanitize user inputs
+- Secure routing
+- No sensitive data in client code
+
+## Documentation Requirements
+
+### Code Documentation
+- JSDoc comments for complex functions
+- README updates for new features
+- API documentation for backend endpoints
+
+### Testing Documentation
+- Test cases must be self-documenting
+- Complex test logic requires comments
+- Update TESTING.md for new test patterns

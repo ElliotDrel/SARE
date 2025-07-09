@@ -1,0 +1,186 @@
+---
+description: Guidelines for testing the application with Vitest
+globs: 
+alwaysApply: false
+---
+# Testing Guidelines
+
+## Testing Framework
+- **Vitest** is used for unit/integration testing with React Testing Library
+- **Playwright** is used for end-to-end testing
+- Tests are located in `src/test/` directory (not colocated)
+- Test files use `.test.tsx` or `.test.ts` extensions
+- E2E tests are in `tests/e2e/` directory with `.spec.ts` extensions
+
+## Test Structure
+```
+src/
+├── test/
+│   ├── setup.ts              # Test configuration and global mocks
+│   ├── App.test.tsx          # App routing tests
+│   └── pages/
+│       └── Index.test.tsx    # Page component tests
+tests/
+└── e2e/
+    ├── homepage.spec.ts      # Homepage E2E tests
+    └── navigation.spec.ts    # Navigation E2E tests
+```
+
+## Configuration
+- **Vitest config**: Defined in `vite.config.ts`
+- **Environment**: jsdom for DOM testing
+- **Setup file**: `src/test/setup.ts` with global mocks and cleanup
+- **Coverage**: 80% minimum thresholds for branches, functions, lines, statements
+- **Globals**: Enabled (no need to import `describe`, `it`, `expect`)
+
+## Common Mocks
+
+### React Router DOM Mock
+```ts
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom');
+  return {
+    ...actual,
+    Link: ({ children, to, className }: { children: React.ReactNode; to: string; className?: string }) => (
+      <a href={to} className={className} data-testid="mock-link">
+        {children}
+      </a>
+    ),
+  };
+});
+```
+
+### Page Component Mocks (for routing tests)
+```ts
+vi.mock('../pages/Index', () => ({
+  default: () => <div data-testid="index-page">Index Page</div>
+}));
+
+vi.mock('../pages/About', () => ({
+  default: () => <div data-testid="about-page">About Page</div>
+}));
+```
+
+### Global Browser API Mocks (in setup.ts)
+```ts
+// IntersectionObserver
+global.IntersectionObserver = class IntersectionObserver {
+  constructor() {}
+  observe() { return null; }
+  disconnect() { return null; }
+  unobserve() { return null; }
+};
+
+// window.matchMedia
+Object.defineProperty(window, 'matchMedia', {
+  writable: true,
+  value: vi.fn().mockImplementation(query => ({
+    matches: false,
+    media: query,
+    onchange: null,
+    addListener: vi.fn(),
+    removeListener: vi.fn(),
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+    dispatchEvent: vi.fn(),
+  })),
+});
+
+// window.scrollTo
+window.scrollTo = vi.fn();
+```
+
+## Test Patterns
+
+### Component Testing with Router
+```ts
+import { describe, it, expect } from 'vitest';
+import { render, screen } from '@testing-library/react';
+import { MemoryRouter } from 'react-router-dom';
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { TooltipProvider } from "@/components/ui/tooltip";
+
+const RouterWrapper = ({ children }: { children: React.ReactNode }) => (
+  <MemoryRouter>{children}</MemoryRouter>
+);
+
+describe('MyComponent', () => {
+  it('renders correctly', () => {
+    render(<MyComponent />, { wrapper: RouterWrapper });
+    expect(screen.getByText('Expected Text')).toBeInTheDocument();
+  });
+});
+```
+
+### Testing with Multiple Providers
+```ts
+const TestApp = () => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } }
+  });
+  
+  return (
+    <QueryClientProvider client={queryClient}>
+      <TooltipProvider>
+        <Routes>
+          <Route path="/" element={<Index />} />
+          <Route path="/about" element={<About />} />
+        </Routes>
+      </TooltipProvider>
+    </QueryClientProvider>
+  );
+};
+
+const renderWithRouter = (initialEntries = ['/']) => {
+  return render(
+    <MemoryRouter initialEntries={initialEntries}>
+      <TestApp />
+    </MemoryRouter>
+  );
+};
+```
+
+### E2E Testing with Playwright
+```ts
+import { test, expect } from '@playwright/test';
+
+test.describe('Feature', () => {
+  test('should perform user action', async ({ page }) => {
+    await page.goto('/');
+    await expect(page.getByText('Expected Text')).toBeVisible();
+    
+    await page.getByRole('button', { name: 'Click Me' }).click();
+    await expect(page.getByText('Success')).toBeVisible();
+  });
+});
+```
+
+## Test Scripts
+```bash
+# Unit tests
+npm run test              # Watch mode
+npm run test:run          # Single run
+npm run test:ui           # Vitest UI
+npm run test:coverage     # With coverage
+
+# E2E tests
+npm run test:e2e          # Run E2E tests
+npm run test:e2e:ui       # Playwright UI
+
+# All tests
+npm run test:all          # Unit + E2E
+npm run test:ci           # Coverage + E2E (for CI)
+```
+
+## Best Practices
+- Each test should be independent
+- Use descriptive test names that explain the behavior
+- Mock external dependencies and APIs
+- Clean up mocks between tests (handled automatically in setup.ts)
+- Avoid testing implementation details
+- Use `data-testid` attributes for reliable element selection in E2E tests
+- Test user interactions and accessibility
+- Group related tests with `describe` blocks
+- Use `beforeEach` for test setup when needed
+- Prefer user-facing queries (`getByRole`, `getByText`) over implementation details
+- For E2E tests, test critical user journeys and cross-browser compatibility
