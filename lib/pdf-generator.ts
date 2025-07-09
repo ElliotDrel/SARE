@@ -39,7 +39,7 @@ export async function generateSAREReport(data: ReportData): Promise<Uint8Array> 
   // Helper function to draw text with word wrapping
   const drawWrappedText = (text: string, x: number, y: number, maxWidth: number, fontSize: number, font = helveticaFont) => {
     const words = text.split(' ');
-    let lines: string[] = [];
+    const lines: string[] = [];
     let currentLine = '';
 
     for (const word of words) {

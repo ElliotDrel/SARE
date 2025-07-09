@@ -49,6 +49,16 @@ export async function getStorytellerByToken(token: string) {
     .single();
 }
 
+export async function updateStorytellerByToken(token: string, data: Partial<Storyteller>) {
+  const supabase = await createClient();
+  return supabase
+    .from("storytellers")
+    .update(data)
+    .eq("invite_token", token)
+    .select()
+    .single();
+}
+
 // Stories functions
 export async function getStoriesForUser(userId: string) {
   const supabase = await createClient();

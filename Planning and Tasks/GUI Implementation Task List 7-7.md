@@ -399,50 +399,88 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Storyteller Flow Tasks
 
-### Task 21: Create Story Invite Landing Page ⬜ PENDING
+### Task 21: Create Story Invite Landing Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_invite/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_invite`
-- [ ] Create `page.tsx` file
-- [ ] Parse token from URL query parameter
-- [ ] Validate token against `storytellers` table
-- [ ] Display invitee name
-- [ ] Add Sign Up button linking to `/story_signup` with token
+- [x] Create folder `app/story_invite`
+- [x] Create `page.tsx` file
+- [x] Parse token from URL query parameter
+- [x] Validate token against `storytellers` table
+- [x] Display invitee name
+- [x] Add Sign Up button linking to `/story_signup` with token
 
-### Task 22: Create Storyteller Sign Up Page ⬜ PENDING
+**Completion Details**:
+- Created comprehensive story invite landing page with token validation
+- Implemented server-side token validation using getStorytellerByToken function
+- Added proper error handling for invalid/expired tokens
+- Created conditional rendering for storytellers who have already submitted stories
+- Implemented responsive design with SARE brand styling
+- Added informational sections about the story submission process
+- Included proper navigation flows for different storyteller states
+
+### Task 22: Create Storyteller Sign Up Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_signup/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_signup`
-- [ ] Create `page.tsx` file
-- [ ] Create form with email and password fields
-- [ ] Validate token from query parameter
-- [ ] Create Supabase auth account
-- [ ] Link account to storyteller record
-- [ ] Redirect to `/story_submit` after successful signup
+- [x] Create folder `app/story_signup`
+- [x] Create `page.tsx` file
+- [x] Create form with email and password fields
+- [x] Validate token from query parameter
+- [x] Create Supabase auth account
+- [x] Link account to storyteller record
+- [x] Redirect to `/story_submit` after successful signup
 
-### Task 23: Create Story Submission Page ⬜ PENDING
+**Completion Details**:
+- Created storyteller signup page with comprehensive form validation
+- Implemented password confirmation and strength validation
+- Created auth server actions file (`app/auth/actions.ts`) with token-based signup
+- Added proper error handling and loading states
+- Integrated token linking to connect auth users with storyteller records
+- Applied consistent SARE brand styling and responsive design
+- Added navigation back to invitation page
+
+### Task 23: Create Story Submission Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_submit/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_submit`
-- [ ] Create `page.tsx` file
-- [ ] Create form with three text areas:
-  - [ ] First area required
-  - [ ] Second and third optional
-- [ ] Save submission to `stories` table
-- [ ] Update storyteller record with submission timestamp
-- [ ] Redirect to thank you page after submission
+- [x] Create folder `app/story_submit`
+- [x] Create `page.tsx` file
+- [x] Create form with three text areas:
+  - [x] First area required
+  - [x] Second and third optional
+- [x] Save submission to `stories` table
+- [x] Update storyteller record with submission timestamp
+- [x] Redirect to thank you page after submission
 
-### Task 24: Create Story Thank You Page ⬜ PENDING
+**Completion Details**:
+- Created protected story submission page with authentication checks
+- Built comprehensive StorySubmitForm client component with auto-save functionality
+- Implemented three-section story form (main story, additional context, reflection)
+- Added real-time character counting and completion status indicators
+- Created auto-save functionality with 2-second debounce similar to self-reflection page
+- Implemented proper database operations for story drafts and final submission
+- Added storyteller record updates with submission timestamps
+- Applied consistent SARE brand styling with helpful tips and guidance
+- Added proper validation and error handling throughout
+
+### Task 24: Create Story Thank You Page ✅ COMPLETED
 **Priority**: High  
 **Location**: `app/story_thank_you/page.tsx`  
 **Details**:
-- [ ] Create folder `app/story_thank_you`
-- [ ] Create `page.tsx` file
-- [ ] Display confirmation message
-- [ ] Provide link to return home
+- [x] Create folder `app/story_thank_you`
+- [x] Create `page.tsx` file
+- [x] Display confirmation message
+- [x] Provide link to return home
+
+**Completion Details**:
+- Created comprehensive thank you page with success confirmation
+- Added "What Happens Next?" section explaining the SARE process
+- Implemented cross-promotional sections for SARE learning and personal journey
+- Added navigation links to About, Research, and Home pages
+- Applied consistent SARE brand styling with success state indicators
+- Created engaging content to encourage further SARE engagement
+- Added proper metadata for SEO and navigation
 
 ## Component Reuse Tasks
 
@@ -502,7 +540,9 @@ Based on GUI Website Plan 7-7.md - Created for systematic implementation
 
 ## Notes
 
-- The onboarding intro and storytellers steps are implemented, but the rest of the onboarding flow and storyteller flow pages are not yet present in the codebase.
+- ✅ All core onboarding flow tasks (Tasks 16-20) are completed and functional
+- ✅ All storyteller flow tasks (Tasks 21-24) are completed and functional
+- ✅ Critical build error resolved by converting report page from client to server component
 - Each task should be completed and tested before moving to the next
 - Use existing components and patterns where possible to maintain consistency
 - Follow the file naming conventions already established in the codebase
