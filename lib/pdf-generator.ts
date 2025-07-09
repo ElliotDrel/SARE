@@ -42,15 +42,24 @@ class PDFGenerator {
   private currentY: number;
   private pageWidth: number;
   private pageHeight: number;
+  private user: User;
+  private selfReflection: SelfReflection | null;
+  private stories: StoryWithStoryteller[];
 
   constructor(
     pdfDoc: PDFDocument,
     regularFont: PDFFont,
-    boldFont: PDFFont
+    boldFont: PDFFont,
+    user: User,
+    selfReflection: SelfReflection | null,
+    stories: StoryWithStoryteller[]
   ) {
     this.pdfDoc = pdfDoc;
     this.regularFont = regularFont;
     this.boldFont = boldFont;
+    this.user = user;
+    this.selfReflection = selfReflection;
+    this.stories = stories;
     this.currentPage = pdfDoc.addPage();
     const { width, height } = this.currentPage.getSize();
     this.pageWidth = width;
@@ -211,19 +220,19 @@ class PDFGenerator {
     this.addStories(this.stories);
   }
 
-  private user!: User;
-  private selfReflection!: SelfReflection | null;
-  private stories!: StoryWithStoryteller[];
-
   public static async create(options: PDFGeneratorOptions): Promise<PDFGenerator> {
     const pdfDoc = await PDFDocument.create();
     const regularFont = await pdfDoc.embedFont(StandardFonts.Helvetica);
     const boldFont = await pdfDoc.embedFont(StandardFonts.HelveticaBold);
     
-    const generator = new PDFGenerator(pdfDoc, regularFont, boldFont);
-    generator.user = options.user;
-    generator.selfReflection = options.selfReflection;
-    generator.stories = options.stories;
+    const generator = new PDFGenerator(
+      pdfDoc,
+      regularFont,
+      boldFont,
+      options.user,
+      options.selfReflection,
+      options.stories
+    );
     
     return generator;
   }

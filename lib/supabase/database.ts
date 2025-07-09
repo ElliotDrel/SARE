@@ -30,7 +30,7 @@ export interface DatabaseResponse<T> {
 }
 
 // Utility function to handle database errors
-function handleDatabaseError(error: unknown): DatabaseError {
+function handleDatabaseError(error: unknown): DatabaseError | null {
   if (!error) return null;
   
   // Common PostgreSQL error codes
