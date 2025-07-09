@@ -11,8 +11,10 @@ import {
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { PDFDocument, rgb, StandardFonts, PDFFont } from "pdf-lib";
 import { saveAs } from "file-saver";
+import { X } from "lucide-react";
 
 type StoryWithStoryteller = Story & {
   storyteller: {
@@ -33,9 +35,11 @@ export default function ReportClient({
   stories,
 }: ReportClientProps) {
   const [isGenerating, setIsGenerating] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   const handleDownload = async () => {
     setIsGenerating(true);
+    setError(null);
     try {
       const pdfDoc = await PDFDocument.create();
       const font = await pdfDoc.embedFont(StandardFonts.Helvetica);
@@ -135,7 +139,7 @@ export default function ReportClient({
 
     } catch (error) {
       console.error("Failed to generate PDF:", error);
-      // Here you could add a user-facing error message
+      setError("An error occurred while generating the PDF. Please try again.");
     } finally {
       setIsGenerating(false);
     }
@@ -149,6 +153,22 @@ export default function ReportClient({
           {isGenerating ? "Generating..." : "Download as PDF"}
         </Button>
       </div>
+
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription className="flex items-center justify-between">
+            <span>{error}</span>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setError(null)}
+              className="h-auto p-1 hover:bg-transparent"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
 
       <Card>
         <CardHeader>

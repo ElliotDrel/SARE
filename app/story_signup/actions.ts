@@ -14,7 +14,8 @@ export async function signup(prevState: { message?: string }, formData: FormData
     return { message: "Invalid invitation: No token provided." };
   }
   
-  const origin = headers().get("origin");
+  const headersList = await headers();
+  const origin = headersList.get("origin");
 
   const supabase = await createClient();
 
