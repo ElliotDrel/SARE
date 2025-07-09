@@ -10,7 +10,7 @@ export const metadata = {
 };
 
 export default async function ReportPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
 
   const {
     data: { user },
@@ -20,10 +20,14 @@ export default async function ReportPage() {
     return redirect("/auth/login");
   }
 
-  const [selfReflection, stories] = await Promise.all([
+  const [selfReflectionResponse, storiesResponse] = await Promise.all([
     getSelfReflection(user.id),
     getStoriesForUser(user.id),
   ]);
+
+  // Extract data from Supabase responses
+  const selfReflection = selfReflectionResponse.data;
+  const stories = storiesResponse.data || [];
 
   return (
     <div className="container-sare py-10">
