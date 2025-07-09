@@ -1,0 +1,80 @@
+---
+description: Util functions
+globs: 
+alwaysApply: false
+---
+# Utility Functions
+
+## Core Utilities
+
+### Styling Utilities
+- Primary utility function `cn()` in `src/lib/utils.ts` combines clsx and tailwind-merge for conditional CSS class merging:
+  ```typescript
+  import { cn } from "@/lib/utils"
+  
+  // Usage in components
+  className={cn("base-classes", conditionalClass && "extra-class", className)}
+  ```
+
+### Component Variant Utilities
+- Use `class-variance-authority` (cva) for creating component variants with type safety:
+  ```typescript
+  import { cva, type VariantProps } from "class-variance-authority"
+  
+  const buttonVariants = cva("base-classes", {
+    variants: {
+      variant: { default: "...", destructive: "..." },
+      size: { default: "...", sm: "...", lg: "..." }
+    }
+  })
+  ```
+
+## Custom Hooks
+
+### Responsive Utilities
+- `useIsMobile()` hook in `src/hooks/use-mobile.tsx` for responsive breakpoint detection (768px breakpoint)
+- Returns boolean for mobile/desktop state with proper SSR handling
+
+### UI State Management
+- `useToast()` hook in `src/hooks/use-toast.ts` for toast notification management
+- Provides centralized toast state with add, update, dismiss functionality
+- Includes automatic cleanup and timeout handling
+
+## API Utilities
+
+### HTTP Requests
+- Use native `fetch()` API for HTTP requests - no additional wrapper libraries
+- Pattern used in ModelAdvisor component for API calls:
+  ```typescript
+  const response = await fetch('/api/endpoint', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(data)
+  })
+  ```
+
+### Backend Services
+- Python-based services in `backend/services/` directory
+- OpenAI service integration for AI model recommendations
+- Serverless functions deployed on Vercel with proper error handling
+
+## Testing Utilities
+
+### Test Helpers
+- Navigation helper classes in e2e tests for reusable test logic
+- Render helpers for React Testing Library in unit tests
+- Mock API response patterns for consistent testing
+
+## Dependencies
+
+### Key Utility Libraries
+- `clsx` - Conditional CSS class utility
+- `tailwind-merge` - Tailwind CSS class merging
+- `class-variance-authority` - Component variant management
+- `date-fns` - Date manipulation utilities
+- `zod` - Schema validation utilities
+
+### UI Component Libraries
+- Radix UI primitives for accessible component foundations
+- Lucide React for consistent iconography
+- Sonner for toast notifications

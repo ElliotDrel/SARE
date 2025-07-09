@@ -1,0 +1,318 @@
+---
+description: Data fetching patterns using native fetch API and TanStack Query
+globs: 
+alwaysApply: false
+---
+# Data Fetching
+
+This is a Vite React application that uses TanStack Query for state management and the native fetch API for data fetching.
+
+## State Management Setup
+
+The app uses TanStack Query (React Query) which is set up in `App.tsx`:
+
+```typescript
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+
+const queryClient = new QueryClient();
+
+const App = () => (
+  <QueryClientProvider client={queryClient}>
+    {/* App content */}
+  </QueryClientProvider>
+);
+```
+
+## Current Data Fetching Patterns
+
+### 1. Client-Side Data Fetching with useEffect + fetch
+
+For loading data on component mount or when dependencies change (current pattern used in ModelAdvisor.tsx):
+
+```typescript
+const [models, setModels] = useState<ModelInfo[]>([]);
+const [loading, setLoading] = useState(true);
+
+useEffect(() => {
+  const loadModels = async () => {
+    try {
+      // Load the model index file
+      const indexResponse = await fetch('/model_docs/index.json');
+      if (!indexResponse.ok) {
+        throw new Error('Failed to load model index');
+      }
+      
+      const { models: modelFiles } = await indexResponse.json();
+      const modelData: ModelInfo[] = [];
+
+      for (const file of modelFiles) {
+        try {
+          const response = await fetch(file.path);
+          if (response.ok) {
+            const content = await response.text();
+            const parsed = parseModelFile(content, file.provider);
+            if (parsed) modelData.push(parsed);
+          }
+        } catch (error) {
+          console.warn(`Failed to load ${file.path}:`, error);
+        }
+      }
+
+      setModels(modelData);
+    } catch (error) {
+      console.error('Error loading models:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  loadModels();
+}, []);
+```
+
+### 2. POST Requests with Error Handling
+
+For API calls and form submissions (pattern used in ModelAdvisor.tsx):
+
+```typescript
+const [isSearching, setIsSearching] = useState(false);
+const [searchError, setSearchError] = useState<string | null>(null);
+
+const handleSearch = async () => {
+  if (!searchQuery.trim()) {
+    setSearchError('Please enter a description of your task or requirements');
+    return;
+  }
+
+  setIsSearching(true);
+  setSearchError(null);
+
+  try {
+    const response = await fetch('/api/model_search', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        query: searchQuery
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Search failed: ${response.status} ${response.statusText}`);
+    }
+
+    const data = await response.json();
+    setRecommendations(data.recommendations);
+  } catch (error) {
+    console.error('Search error:', error);
+    setSearchError(
+      error instanceof Error 
+        ? `Failed to get recommendations: ${error.message}` 
+        : 'Failed to get recommendations. Please try again.'
+    );
+  } finally {
+    setIsSearching(false);
+  }
+};
+```
+
+### 3. Form Submission Pattern
+
+For contact forms and user input (pattern used in Contact.tsx):
+
+```typescript
+const [isSubmitting, setIsSubmitting] = useState(false);
+const { toast } = useToast();
+
+const handleSubmit = async (e: React.FormEvent) => {
+  e.preventDefault();
+  
+  if (!email) {
+    toast({
+      title: "Email Required",
+      description: "Please enter your email address.",
+      variant: "destructive",
+    });
+    return;
+  }
+
+  setIsSubmitting(true);
+  
+  // Simulate or make actual API call
+  setTimeout(() => {
+    setIsSubmitting(false);
+    
+    // Show success notification
+    toast({
+      title: "Email Successfully Sent! ✅",
+      description: "Your email was officially sent and we will get back to you in LESS than 24 hours.",
+    });
+    
+    // Reset form
+    setEmail('');
+    setName('');
+    setMessage('');
+  }, 1000);
+};
+```
+
+## Error Handling with Toast
+
+Use the `useToast` hook from shadcn/ui for user notifications:
+
+```typescript
+import { useToast } from "@/hooks/use-toast";
+
+const { toast } = useToast();
+
+// Success toast
+toast({
+  title: "Email Successfully Sent! ✅",
+  description: "Your email was officially sent and we will get back to you in LESS than 24 hours.",
+});
+
+// Error toast
+toast({
+  title: "Error",
+  description: "Something went wrong. Please try again.",
+  variant: "destructive",
+});
+
+// Form validation error
+if (!email) {
+  toast({
+    title: "Email Required",
+    description: "Please enter your email address.",
+    variant: "destructive",
+  });
+  return;
+}
+```
+
+## Loading States
+
+Always provide loading states for better UX. Current patterns used in the codebase:
+
+### Simple Loading State
+```typescript
+if (loading) {
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-green-50">
+      <Navigation />
+      <main className="pt-20">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+          <div className="flex justify-center items-center h-64">
+            <div className="text-xl text-gray-600">Loading AI models...</div>
+          </div>
+        </div>
+      </main>
+    </div>
+  );
+}
+```
+
+### Button Loading State
+```typescript
+<Button
+  type="submit"
+  disabled={isSubmitting}
+  className="w-full bg-blue-600 hover:bg-blue-700 text-white py-3"
+>
+  {isSubmitting ? (
+    <div className="flex items-center space-x-2">
+      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+      <span>Sending...</span>
+    </div>
+  ) : (
+    'Send Message'
+  )}
+</Button>
+```
+
+### Spinner with Text
+```typescript
+{isSearching ? (
+  <>
+    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+    Getting Recommendations...
+  </>
+) : (
+  <>
+    <Search className="h-4 w-4 mr-2" />
+    Get AI Recommendations
+  </>
+)}
+```
+
+## Dependencies Used
+
+- **TanStack Query**: `@tanstack/react-query` v5.56.2 (configured but not actively used yet)
+- **Axios**: `axios` v1.6.2 (installed but not currently used)
+- **Native Fetch API**: Primary method for HTTP requests
+- **Toast Notifications**: Shadcn/ui toast components
+- **React Router**: `react-router-dom` v6.26.2 for navigation
+
+## Future Migration to TanStack Query
+
+While TanStack Query is configured, the current codebase uses manual state management with useEffect and useState. For future data fetching, consider migrating to TanStack Query patterns:
+
+### Query Example (Future Pattern)
+```typescript
+import { useQuery } from '@tanstack/react-query';
+
+const useModels = () => {
+  return useQuery({
+    queryKey: ['models'],
+    queryFn: async () => {
+      const response = await fetch('/model_docs/index.json');
+      if (!response.ok) {
+        throw new Error('Failed to load model index');
+      }
+      return response.json();
+    },
+  });
+};
+
+// Usage
+const { data: models, isLoading, error } = useModels();
+```
+
+### Mutation Example (Future Pattern)
+```typescript
+import { useMutation } from '@tanstack/react-query';
+
+const useModelSearch = () => {
+  return useMutation({
+    mutationFn: async (query: string) => {
+      const response = await fetch('/api/model_search', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query }),
+      });
+      
+      if (!response.ok) {
+        throw new Error(`Search failed: ${response.status}`);
+      }
+      
+      return response.json();
+    },
+  });
+};
+
+// Usage
+const searchMutation = useModelSearch();
+const handleSearch = () => searchMutation.mutate(searchQuery);
+```
+
+## Best Practices
+
+1. **Always handle errors gracefully** - Use try/catch blocks and provide meaningful error messages
+2. **Show loading states** - Users should know when data is being fetched with appropriate spinners
+3. **Use proper HTTP status checking** - Check `response.ok` before parsing JSON
+4. **Clean up state properly** - Reset error states before new requests
+5. **Provide user feedback** - Use toast notifications for success/error states with specific messages
+6. **Log errors for debugging** - Use `console.error()` for development debugging
+7. **Disable interactive elements during loading** - Prevent multiple submissions
+8. **Use consistent error messages** - Provide user-friendly error descriptions
+9. **Validate input before submission** - Check required fields and show validation errors 

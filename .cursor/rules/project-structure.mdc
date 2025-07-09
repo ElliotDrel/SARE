@@ -1,0 +1,135 @@
+---
+description: Project structure and file organization guidelines
+globs: 
+alwaysApply: false
+---
+# Project Structure
+
+## Main Structure
+
+- React + TypeScript frontend with Vite as build tool
+- Python backend with FastAPI
+- ModelAdvisor application for AI model recommendations
+- Separate frontend and backend services
+
+```tree
+.
+├── src/                 # Frontend React application
+│   ├── components/      # React components
+│   │   └── ui/         # Shadcn UI components (Button, Dialog, etc.)
+│   ├── pages/          # Page components
+│   │   ├── Index.tsx          # Home page
+│   │   ├── ModelAdvisor.tsx   # Main model advisor page
+│   │   ├── About.tsx          # About page
+│   │   ├── Contact.tsx        # Contact page
+│   │   └── NotFound.tsx       # 404 page
+│   ├── hooks/          # Custom React hooks
+│   │   ├── use-toast.ts       # Toast notifications hook
+│   │   └── use-mobile.tsx     # Mobile detection hook
+│   ├── lib/            # Utility functions and libraries
+│   │   └── utils.ts           # Common utilities
+│   ├── test/           # Frontend test files
+│   ├── App.tsx         # Main App component
+│   ├── main.tsx        # Application entry point
+│   ├── App.css         # App-specific styles
+│   ├── index.css       # Global CSS styles
+│   └── vite-env.d.ts   # Vite environment types
+├── backend/            # Python backend application
+│   ├── services/       # Backend services
+│   │   ├── openai_service.py  # OpenAI integration
+│   │   └── __init__.py
+│   ├── main.py         # FastAPI application entry point
+│   ├── requirements.txt # Python dependencies
+│   └── __init__.py
+├── api/                # Additional API services
+│   ├── services/       # API service modules
+│   │   ├── openai_service.py  # OpenAI API service
+│   │   └── __init__.py
+│   └── model_search.py # Model search functionality
+├── tests/              # Test directory
+│   └── e2e/           # End-to-end tests (Playwright)
+├── public/             # Static assets
+│   ├── model_docs/     # Model documentation files
+│   ├── drel-logo.png   # Application logo
+│   ├── favicon.png     # Favicon
+│   ├── business-deal-handshake.png # Business images
+│   ├── Elliot Drel Headshot.jpg    # Profile images
+│   ├── robots.txt      # SEO robots file
+│   └── drel-solutions-description.txt # Business description
+├── TEMP/               # Temporary files
+├── Original Images/    # Source image assets
+├── model_docs/         # Model documentation
+├── .github/            # GitHub workflows and configurations
+├── .cursor/            # Cursor IDE configuration
+├── package.json        # Frontend dependencies and scripts
+├── vite.config.ts      # Vite configuration
+├── tailwind.config.ts  # Tailwind CSS configuration
+├── tsconfig.json       # TypeScript configuration
+├── playwright.config.ts # Playwright test configuration
+├── eslint.config.js    # ESLint configuration
+├── postcss.config.js   # PostCSS configuration
+├── components.json     # Shadcn UI configuration
+├── requirements.txt    # Additional Python dependencies
+├── vercel.json         # Vercel deployment configuration
+├── index.html          # HTML entry point
+├── TESTING.md          # Testing documentation
+└── README.md           # Project documentation
+```
+
+## File Naming and Organization
+
+- Use kebab case for directories and files when possible
+- Use PascalCase for React components (e.g. `src/components/ModelAdvisor.tsx`)
+- Shadcn UI components are in `src/components/ui/`
+- Page components are in `src/pages/`
+- Custom hooks are in `src/hooks/`
+- Utility functions are in `src/lib/`
+- Python modules use snake_case (e.g. `openai_service.py`)
+- Colocate files in the folder where they're used unless they can be used across the app
+
+## Frontend Structure
+
+- Built with React 18 and TypeScript
+- Uses Vite as the build tool and dev server
+- Tailwind CSS for styling with Shadcn UI components
+- React Router for client-side routing
+- React Hook Form with Zod for form validation
+- Tanstack Query for data fetching
+- Vitest for unit testing, Playwright for E2E testing
+
+## Backend Structure
+
+- Python FastAPI backend
+- OpenAI service integration for AI model interactions
+- Separate backend and api directories for different service layers
+- Requirements.txt for Python dependency management
+
+## Development Scripts
+
+- `npm run dev` - Start Vite development server
+- `npm run start:backend` - Start Python backend
+- `npm run start:full` - Start both frontend and backend concurrently
+- `npm run build` - Build for production
+- `npm run test` - Run Vitest unit tests
+- `npm run test:e2e` - Run Playwright E2E tests
+- `npm run test:all` - Run all tests
+
+## New Pages
+
+- Create new page components in `src/pages/`
+- Add routing in `App.tsx` using React Router
+- Pages are functional components using React hooks
+- Use TypeScript for type safety
+- Components can be client-side rendered
+
+## Utility Functions
+
+- Create utility functions in `src/lib/` folder for reusable logic
+- Use established patterns for common operations
+- Import utilities as needed in components
+
+## Testing
+
+- Unit tests with Vitest in `src/test/`
+- E2E tests with Playwright in `tests/e2e/`
+- Testing configuration in `playwright.config.ts` and `vite.config.ts`
