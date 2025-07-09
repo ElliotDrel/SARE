@@ -1,25 +1,21 @@
-"use client";
-
-import { useState, useEffect } from "react";
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Collapsible } from "@/components/ui/collapsible";
 import { 
-  Download,
   FileText,
   Users,
   MessageSquare,
   Calendar,
   ArrowLeft,
-  Loader2,
   CheckCircle,
   BookOpen
 } from "lucide-react";
-import { createClient } from "@/lib/supabase/client";
+import { createClient } from "@/lib/supabase/server";
 import { getStoriesForUser, getSelfReflection } from "@/lib/supabase/database";
-import { generateSAREReport } from "@/lib/pdf-generator";
+import PDFDownloadButton from "@/components/pdf-download-button";
 import type { Story, SelfReflection } from "@/lib/supabase/types";
 
 interface StoryWithStoryteller extends Story {
@@ -29,112 +25,67 @@ interface StoryWithStoryteller extends Story {
   };
 }
 
-export default function ReportPage() {
-  const [stories, setStories] = useState<StoryWithStoryteller[]>([]);
-  const [selfReflection, setSelfReflection] = useState<SelfReflection | null>(null);
-  const [userEmail, setUserEmail] = useState<string>("");
-  const [isLoading, setIsLoading] = useState(true);
-  const [isGeneratingPDF, setIsGeneratingPDF] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+async function getReportData(userId: string) {
+  const [storiesResult, reflectionResult] = await Promise.all([
+    getStoriesForUser(userId),
+    getSelfReflection(userId)
+  ]);
 
-  const supabase = createClient();
+  if (storiesResult.error) {
+    throw new Error(storiesResult.error.message);
+  }
 
-  useEffect(() => {
-    async function loadReportData() {
-      try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
-          setError("User not authenticated");
-          return;
-        }
+  const stories = storiesResult.data || [];
+  
+  let selfReflection = null;
+  if (reflectionResult.error && reflectionResult.error.code !== 'PGRST116') {
+    throw new Error(reflectionResult.error.message);
+  } else if (!reflectionResult.error) {
+    selfReflection = reflectionResult.data;
+  }
 
-        setUserEmail(user.email || "");
+  return { stories, selfReflection };
+}
 
-        // Load stories and self-reflection in parallel
-        const [storiesResult, reflectionResult] = await Promise.all([
-          getStoriesForUser(user.id),
-          getSelfReflection(user.id)
-        ]);
+function formatDate(dateString: string) {
+  return new Date(dateString).toLocaleDateString('en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  });
+}
 
-        if (storiesResult.error) {
-          throw new Error(storiesResult.error.message);
-        }
-        
-        setStories(storiesResult.data || []);
+function getReflectionCompletion(selfReflection: SelfReflection | null) {
+  if (!selfReflection) return { completed: 0, total: 3 };
+  const completed = [
+    selfReflection.reflection_1,
+    selfReflection.reflection_2,
+    selfReflection.reflection_3
+  ].filter(r => r && r.trim().length > 0).length;
+  return { completed, total: 3 };
+}
 
-        if (reflectionResult.error && reflectionResult.error.code !== 'PGRST116') {
-          throw new Error(reflectionResult.error.message);
-        }
-        
-        setSelfReflection(reflectionResult.data);
+export default async function ReportPage() {
+  const supabase = await createClient();
+  
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    redirect("/auth/login");
+  }
 
-      } catch (err) {
-        console.error("Error loading report data:", err);
-        setError(err instanceof Error ? err.message : "Failed to load report data");
-      } finally {
-        setIsLoading(false);
-      }
-    }
+  const userEmail = user.email || "";
 
-    loadReportData();
-  }, [supabase]);
+  let stories: StoryWithStoryteller[] = [];
+  let selfReflection: SelfReflection | null = null;
+  let error: string | null = null;
 
-  const handleDownloadPDF = async () => {
-    if (!userEmail) return;
-
-    setIsGeneratingPDF(true);
-    try {
-      const pdfBytes = await generateSAREReport({
-        userEmail,
-        stories,
-        selfReflection
-      });
-
-      // Create blob and download
-      const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `SARE-Report-${new Date().toISOString().split('T')[0]}.pdf`;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-      URL.revokeObjectURL(url);
-    } catch (err) {
-      console.error("Error generating PDF:", err);
-      setError("Failed to generate PDF report");
-    } finally {
-      setIsGeneratingPDF(false);
-    }
-  };
-
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
-  };
-
-  const getReflectionCompletion = () => {
-    if (!selfReflection) return { completed: 0, total: 3 };
-    const completed = [
-      selfReflection.reflection_1,
-      selfReflection.reflection_2,
-      selfReflection.reflection_3
-    ].filter(r => r && r.trim().length > 0).length;
-    return { completed, total: 3 };
-  };
-
-  if (isLoading) {
-    return (
-      <div className="container-sare section-spacing">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-teal mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading your report...</p>
-        </div>
-      </div>
-    );
+  try {
+    const data = await getReportData(user.id);
+    stories = data.stories;
+    selfReflection = data.selfReflection;
+  } catch (err) {
+    console.error("Error loading report data:", err);
+    error = err instanceof Error ? err.message : "Failed to load report data";
   }
 
   if (error) {
@@ -158,7 +109,7 @@ export default function ReportPage() {
     );
   }
 
-  const reflectionStatus = getReflectionCompletion();
+  const reflectionStatus = getReflectionCompletion(selfReflection);
   const canGenerateReport = stories.length > 0 && reflectionStatus.completed === 3;
 
   return (
@@ -240,23 +191,11 @@ export default function ReportPage() {
               )}
             </div>
             {canGenerateReport ? (
-              <Button 
-                onClick={handleDownloadPDF} 
-                disabled={isGeneratingPDF}
-                className="w-full bg-accent-coral hover:bg-accent-coral/90"
-              >
-                {isGeneratingPDF ? (
-                  <>
-                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                    Generating...
-                  </>
-                ) : (
-                  <>
-                    <Download className="h-4 w-4 mr-2" />
-                    Download PDF
-                  </>
-                )}
-              </Button>
+              <PDFDownloadButton
+                userEmail={userEmail}
+                stories={stories}
+                selfReflection={selfReflection}
+              />
             ) : (
               <p className="text-sm text-muted-foreground">
                 Complete all reflections to generate
@@ -330,7 +269,7 @@ export default function ReportPage() {
           <CardHeader>
             <CardTitle className="text-amber-700">No Stories Yet</CardTitle>
             <CardDescription className="text-amber-600">
-              You haven't collected any stories yet. Add storytellers and send invites to get started.
+              You haven&apos;t collected any stories yet. Add storytellers and send invites to get started.
             </CardDescription>
           </CardHeader>
           <CardContent>
