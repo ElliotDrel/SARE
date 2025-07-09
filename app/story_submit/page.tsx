@@ -87,7 +87,7 @@ export default async function StorySubmitPage({ searchParams }: StorySubmitPageP
         </div>
 
         {/* Story Form */}
-        <StorySubmitForm storyteller={storyteller} token={token} />
+        <StorySubmitForm storyteller={storyteller} />
       </div>
     </div>
   );
