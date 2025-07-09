@@ -43,3 +43,7 @@ next-env.d.ts
 
 # Ignore Claude local settings
 .claude/settings.local.json
+
+# logs
+logs/*.log
+logs/*.log.*

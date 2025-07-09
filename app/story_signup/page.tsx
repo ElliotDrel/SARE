@@ -1,10 +1,11 @@
 "use client";
 
+import { Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { StorytellerSignUpForm } from "./form";
 import { Card, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
-export default function StorytellerSignUpPage() {
+function StorytellerSignUpContent() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
 
@@ -22,5 +23,13 @@ export default function StorytellerSignUpPage() {
         </Card>
       </div>
     </div>
+  );
+}
+
+export default function StorytellerSignUpPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <StorytellerSignUpContent />
+    </Suspense>
   );
 } 

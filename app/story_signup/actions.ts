@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { getStorytellerByToken, updateStoryteller } from "@/lib/supabase/database";
+import { getStorytellerByToken } from "@/lib/supabase/database";
+import { storytellerSignupTransaction } from "@/lib/supabase/transactions";
 import { redirect } from "next/navigation";
 import { headers } from "next/headers";
 import { storytellerSignupSchema, validateAndSanitize } from "@/lib/validations";
@@ -33,8 +34,6 @@ export async function signup(
   const headersList = await headers();
   const origin = headersList.get("origin");
 
-  const supabase = await createClient();
-
   // 1. Validate the token
   const { data: storyteller, error: tokenError } = await getStorytellerByToken(token);
   if (tokenError) {
@@ -51,42 +50,33 @@ export async function signup(
     return { message: "This invitation has already been used. If you already have an account, please log in instead." };
   }
 
-  // 2. Create the new auth user
-  const { data: authData, error: signUpError } = await supabase.auth.signUp({
+  // 2. Execute atomic signup transaction
+  const { data: transactionResult, error: transactionError } = await storytellerSignupTransaction(
     email,
     password,
-    options: {
-      emailRedirectTo: `${origin}/auth/confirm`,
-    },
-  });
+    storyteller.id,
+    origin!
+  );
 
-  if (signUpError) {
-    console.error("Signup error:", signUpError);
-    if (signUpError.message.includes("already registered")) {
+  if (transactionError) {
+    console.error("Signup transaction error:", transactionError);
+    
+    // Provide user-friendly error messages based on error type
+    if (transactionError.message.includes("already registered")) {
       return { message: "An account with this email already exists. Please log in instead or use a different email address." };
     }
-    return { message: `Account creation failed: ${signUpError.message}. Please try again or contact support.` };
-  }
-  
-  if (!authData.user) {
-    return { message: "Account creation was unsuccessful. Please try again or contact support if the issue persists." };
-  }
-
-  // 3. Link the new user to the storyteller record
-  const updateData = {
-    storyteller_user_id: authData.user.id,
-    invite_token: undefined, // Clear the token so it can't be reused
-  };
-  
-  const { error: updateError } = await updateStoryteller(storyteller.id, updateData);
-
-  if (updateError) {
-    console.error("Account linking error:", updateError);
-    // This is a tricky state. The user is created in auth, but not linked.
-    // For now, we'll return an error. A more robust solution might involve cleanup.
-    return { message: `Account was created but couldn't be linked to your invitation. Please contact support with this error message: ${updateError.message}` };
+    
+    if (transactionError.message.includes("User creation failed")) {
+      return { message: "Account creation was unsuccessful. Please try again or contact support if the issue persists." };
+    }
+    
+    return { message: `Account creation failed: ${transactionError.message}. Please try again or contact support.` };
   }
 
-  // 4. Redirect to the story submission page
+  if (!transactionResult) {
+    return { message: "Signup process failed. Please try again or contact support if the issue persists." };
+  }
+
+  // 3. Redirect to the story submission page
   return redirect("/story_submit");
 } 

@@ -1,7 +1,8 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
-import { createStory, getStorytellerDetails } from "@/lib/supabase/database";
+import { getStorytellerDetails } from "@/lib/supabase/database";
+import { storyCreationTransaction } from "@/lib/supabase/transactions";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { storySubmissionSchema, validateAndSanitize, sanitizeHtml } from "@/lib/validations";
@@ -46,12 +47,12 @@ export async function submitStory(prevState: { message?: string }, formData: For
     story_part_3: validation.data.story_part_3 ? sanitizeHtml(validation.data.story_part_3) : null,
   };
 
-  // 5. Create the story
-  const { error } = await createStory(storyData);
+  // 5. Create the story using transaction
+  const { data: story, error } = await storyCreationTransaction(storyData);
 
   if (error) {
     console.error("Story submission error:", error);
-    if (error.message.includes("duplicate")) {
+    if (error.message.includes("duplicate") || error.message.includes("already exists")) {
       return { message: "It looks like you've already submitted a story. Each storyteller can only submit one story per invitation." };
     }
     return { message: `Failed to submit your story: ${error.message}. Please try again or contact support if the issue persists.` };
