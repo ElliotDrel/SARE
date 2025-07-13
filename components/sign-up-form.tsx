@@ -47,14 +47,28 @@ export function SignUpForm({
           emailRedirectTo: `${window.location.origin}/protected`,
         },
       });
-      if (error) throw error;
+
+      if (error) {
+        // Handle known Supabase error for existing users
+        if (
+          error.message.toLowerCase().includes("user already registered") ||
+          error.message.toLowerCase().includes("email") // handles generic email errors
+        ) {
+          setError("An account with this email already exists.");
+        } else {
+          setError(error.message);
+        }
+        return;
+      }
+
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
+      setError(error instanceof Error ? error.message : "An unknown error occurred");
     } finally {
       setIsLoading(false);
     }
   };
+
 
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
