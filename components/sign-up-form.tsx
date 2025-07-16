@@ -47,11 +47,28 @@ export function SignUpForm({
           emailRedirectTo: `${window.location.origin}/protected`,
         },
       });
-      if (error) throw error;
+      
+      if (error) {
+        // Handle specific Supabase errors
+        if (error.message.includes("User already registered")) {
+          setError("An account with this email already exists. Please try logging in instead.");
+        } else if (error.message.includes("already registered")) {
+          setError("This email is already registered. Please use a different email or try logging in.");
+        } else if (error.message.includes("Invalid email")) {
+          setError("Please enter a valid email address.");
+        } else if (error.message.includes("Password")) {
+          setError("Password must be at least 6 characters long.");
+        } else {
+          setError(error.message);
+        }
+        setIsLoading(false);
+        return;
+      }
+      
       router.push("/auth/sign-up-success");
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
@@ -101,9 +118,13 @@ export function SignUpForm({
                   onChange={(e) => setRepeatPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? "Creating an account..." : "Sign up"}
+                {isLoading ? "Creating account..." : "Sign up"}
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

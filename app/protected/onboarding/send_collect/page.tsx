@@ -14,6 +14,7 @@ import {
   Clock,
   AlertCircle,
   ArrowRight,
+  ArrowLeft,
   Users,
   BarChart3
 } from "lucide-react";
@@ -87,16 +88,34 @@ export default function SendCollectPage() {
 
       if (updateError) throw updateError;
 
-      // Invoke the Supabase Edge Function to send the invite email
-      const { error: invokeError } = await supabase.functions.invoke('send-story-invite', {
-        body: { 
-          email: storyteller.email,
-          invite_token: storyteller.invite_token,
-          storyteller_name: storyteller.name,
-        },
-      });
+      // Try to send the invite email via API route
+      try {
+        const response = await fetch('/api/send-story-invite', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            email: storyteller.email,
+            invite_token: storyteller.invite_token,
+            storyteller_name: storyteller.name,
+          }),
+        });
 
-      if (invokeError) throw invokeError;
+        if (!response.ok) {
+          const errorData = await response.json();
+          throw new Error(errorData.error || 'Failed to send email');
+        }
+
+        const result = await response.json();
+        if (result.message.includes('not configured')) {
+          setError(`Email service is not configured. Please contact support to set up the mailing service. The invitation has been marked as sent in the database.`);
+        }
+      } catch (emailError) {
+        // Email service error - show helpful message
+        console.error("Email service error:", emailError);
+        setError(`Failed to send email to ${storyteller.name}. The invitation has been marked as sent in the database, but the email was not delivered.`);
+      }
 
       // Refresh data to show updated status
       await fetchData();
@@ -148,9 +167,8 @@ export default function SendCollectPage() {
   if (isLoading) {
     return (
       <div className="container-sare section-spacing">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary-teal mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading story collection data...</p>
+        <div className="flex items-center justify-center min-h-[400px]">
+          <RefreshCw className="h-8 w-8 animate-spin text-primary-teal" />
         </div>
       </div>
     );
@@ -158,30 +176,41 @@ export default function SendCollectPage() {
 
   return (
     <div className="container-sare section-spacing">
+      {/* Back Button */}
+      <div className="mb-6">
+        <Button 
+          asChild 
+          variant="outline" 
+          size="sm"
+          className="mb-4"
+        >
+          <Link href="/protected/onboarding/storytellers">
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Storytellers
+          </Link>
+        </Button>
+      </div>
+
       {/* Header */}
-      <div className="mb-8">
-        <h1 className="heading-xl text-primary-teal mb-2">
-          Send and Collect Stories
+      <div className="text-center mb-8">
+        <h1 className="text-3xl font-bold text-neutral-charcoal mb-4">
+          Send & Collect Stories
         </h1>
-        <p className="body-lg text-muted-foreground">
-          Send invitations to your storytellers and track their progress as they share stories about your strengths.
+        <p className="text-lg text-neutral-700 max-w-2xl mx-auto">
+          Send personalized invitations to your storytellers and track their responses.
         </p>
       </div>
 
       {/* Error Alert */}
       {error && (
-        <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-md relative mb-6 flex justify-between items-center" role="alert">
-          <div>
-            <strong className="font-bold">An error occurred:</strong>
-            <span className="block sm:inline ml-2">{error}</span>
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+          <div className="flex items-start">
+            <AlertCircle className="h-5 w-5 text-red-500 mt-0.5 mr-3 flex-shrink-0" />
+            <div>
+              <h3 className="text-sm font-medium text-red-800">Error</h3>
+              <p className="text-sm text-red-700 mt-1">{error}</p>
+            </div>
           </div>
-          <button 
-            onClick={() => setError(null)} 
-            className="text-red-700 hover:text-red-900"
-            aria-label="Close"
-          >
-            <span className="text-2xl font-bold">&times;</span>
-          </button>
         </div>
       )}
 

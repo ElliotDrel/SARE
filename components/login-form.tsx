@@ -37,12 +37,28 @@ export function LoginForm({
         email,
         password,
       });
-      if (error) throw error;
-      // Update this route to redirect to an authenticated route. The user already has an active session.
+      
+      if (error) {
+        // Handle specific login errors
+        if (error.message.includes("Invalid login credentials")) {
+          setError("Invalid email or password. Please check your credentials and try again.");
+        } else if (error.message.includes("Email not confirmed")) {
+          setError("Please check your email and click the confirmation link before signing in.");
+        } else if (error.message.includes("Invalid email")) {
+          setError("Please enter a valid email address.");
+        } else {
+          setError(error.message);
+        }
+        setIsLoading(false);
+        return;
+      }
+      
+      // Successful login - redirect to protected area
       router.push("/protected");
+      router.refresh(); // Refresh to update auth state
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
+      const errorMessage = error instanceof Error ? error.message : "An unexpected error occurred";
+      setError(errorMessage);
       setIsLoading(false);
     }
   };
@@ -88,7 +104,11 @@ export function LoginForm({
                   onChange={(e) => setPassword(e.target.value)}
                 />
               </div>
-              {error && <p className="text-sm text-red-500">{error}</p>}
+              {error && (
+                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                  <p className="text-sm text-red-700">{error}</p>
+                </div>
+              )}
               <Button type="submit" className="w-full" disabled={isLoading}>
                 {isLoading ? "Logging in..." : "Login"}
               </Button>
