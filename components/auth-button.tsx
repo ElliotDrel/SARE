@@ -58,10 +58,7 @@ export function AuthButton() {
   }
 
   return user ? (
-    <div className="flex items-center gap-4">
-      <span className="text-sm">Hey, {user.email}!</span>
-      <LogoutButton />
-    </div>
+    <LogoutButton />
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>

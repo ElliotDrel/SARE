@@ -72,12 +72,7 @@ export function MobileMenu({ navigationLinks, user, isLoading = false }: MobileM
                   <div className="h-9 w-16 bg-white/20 animate-pulse rounded"></div>
                 </div>
               ) : user ? (
-                <div className="flex flex-col gap-2">
-                  <div className="text-white text-sm">
-                    Hey, {user.email}!
-                  </div>
-                  <LogoutButton />
-                </div>
+                <LogoutButton />
               ) : (
                 <div className="flex gap-2">
                   <Button asChild size="sm" variant="outline" className="bg-white text-primary-teal hover:bg-gray-100">
