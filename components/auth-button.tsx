@@ -51,21 +51,24 @@ export function AuthButton() {
   if (isLoading) {
     return (
       <div className="flex gap-2">
-        <div className="h-9 w-16 bg-gray-200 animate-pulse rounded"></div>
+        <div className="h-9 w-20 bg-gray-200 animate-pulse rounded"></div>
         <div className="h-9 w-16 bg-gray-200 animate-pulse rounded"></div>
       </div>
     );
   }
 
   return user ? (
-    <LogoutButton />
+    <div className="flex items-center gap-4">
+      <span className="text-white text-sm">Hey, {user.email}</span>
+      <LogoutButton />
+    </div>
   ) : (
     <div className="flex gap-2">
       <Button asChild size="sm" variant={"outline"}>
-        <Link href="/auth/login">Sign in</Link>
+        <Link href="/auth/login">Log In</Link>
       </Button>
       <Button asChild size="sm" variant={"default"}>
-        <Link href="/auth/sign-up">Sign up</Link>
+        <Link href="/auth/sign-up">Sign Up</Link>
       </Button>
     </div>
   );

@@ -59,10 +59,10 @@ export function MobileMenu({ navigationLinks, user, isLoading = false }: MobileM
                   </Badge>
                   <div className="flex gap-2">
                     <Button size="sm" variant={"outline"} disabled className="bg-white/20 text-white border-white">
-                      Sign in
+                      Log In
                     </Button>
                     <Button size="sm" variant={"default"} disabled className="bg-white/20 text-white">
-                      Sign up
+                      Sign Up
                     </Button>
                   </div>
                 </div>
@@ -72,14 +72,19 @@ export function MobileMenu({ navigationLinks, user, isLoading = false }: MobileM
                   <div className="h-9 w-16 bg-white/20 animate-pulse rounded"></div>
                 </div>
               ) : user ? (
-                <LogoutButton />
+                <div className="flex flex-col gap-2">
+                  <div className="text-white text-sm">
+                    Hey, {user.email}
+                  </div>
+                  <LogoutButton />
+                </div>
               ) : (
                 <div className="flex gap-2">
                   <Button asChild size="sm" variant="outline" className="bg-white text-primary-teal hover:bg-gray-100">
-                    <Link href="/auth/login">Sign in</Link>
+                    <Link href="/auth/login">Log In</Link>
                   </Button>
                   <Button asChild size="sm" className="bg-accent-coral hover:bg-accent-coral/90">
-                    <Link href="/auth/sign-up">Sign up</Link>
+                    <Link href="/auth/sign-up">Sign Up</Link>
                   </Button>
                 </div>
               )}
