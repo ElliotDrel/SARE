@@ -16,9 +16,15 @@ export function AuthStatus() {
   useEffect(() => {
     // Get initial session
     const getSession = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      setUser(session?.user ?? null);
-      setLoading(false);
+      try {
+        const { data: { session } } = await supabase.auth.getSession();
+        console.log("Initial session:", session?.user?.email || "No user");
+        setUser(session?.user ?? null);
+        setLoading(false);
+      } catch (error) {
+        console.error("Error getting session:", error);
+        setLoading(false);
+      }
     };
 
     getSession();
@@ -26,9 +32,16 @@ export function AuthStatus() {
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        console.log("Auth state changed:", event, session?.user?.email);
+        console.log("Auth state changed:", event, session?.user?.email || "No user");
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // Log the current state for debugging
+        if (event === 'SIGNED_OUT') {
+          console.log("User signed out - showing login/signup buttons");
+        } else if (event === 'SIGNED_IN') {
+          console.log("User signed in - showing user info and logout button");
+        }
       }
     );
 
