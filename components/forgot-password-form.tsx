@@ -12,6 +12,8 @@ import {
 } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { AlertCircle, CheckCircle, Mail } from "lucide-react";
 import Link from "next/link";
 import { useState } from "react";
 
@@ -26,20 +28,54 @@ export function ForgotPasswordForm({
 
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
-    const supabase = createClient();
     setIsLoading(true);
     setError(null);
 
+    // Client-side validation
+    if (!email) {
+      setError("Please enter your email address");
+      setIsLoading(false);
+      return;
+    }
+
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      setError("Please enter a valid email address");
+      setIsLoading(false);
+      return;
+    }
+
+    const supabase = createClient();
+
     try {
-      // The url which will be included in the email. This URL needs to be configured in your redirect URLs in the Supabase dashboard at https://supabase.com/dashboard/project/_/auth/url-configuration
+      // Get the current origin safely
+      const origin = typeof window !== 'undefined' 
+        ? window.location.origin 
+        : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/auth/update-password`,
+        redirectTo: `${origin}/auth/update-password`,
       });
-      if (error) throw error;
+
+      if (error) {
+        // Handle specific error cases
+        if (error.message.includes("Invalid email")) {
+          setError("Please enter a valid email address");
+        } else if (error.message.includes("not found")) {
+          setError("No account found with this email address");
+        } else if (error.message.includes("rate limit")) {
+          setError("Too many requests. Please wait a few minutes before trying again");
+        } else {
+          setError(error.message);
+        }
+        setIsLoading(false);
+        return;
+      }
+
       setSuccess(true);
     } catch (error: unknown) {
-      setError(error instanceof Error ? error.message : "An error occurred");
-    } finally {
+      console.error("Password reset error:", error);
+      setError("An unexpected error occurred. Please try again later.");
       setIsLoading(false);
     }
   };
@@ -49,14 +85,37 @@ export function ForgotPasswordForm({
       {success ? (
         <Card>
           <CardHeader>
-            <CardTitle className="text-2xl">Check Your Email</CardTitle>
+            <CardTitle className="text-2xl flex items-center gap-2">
+              <CheckCircle className="h-6 w-6 text-green-600" />
+              Check Your Email
+            </CardTitle>
             <CardDescription>Password reset instructions sent</CardDescription>
           </CardHeader>
           <CardContent>
-            <p className="text-sm text-muted-foreground">
-              If you registered using your email and password, you will receive
-              a password reset email.
-            </p>
+            <div className="space-y-4">
+              <Alert className="border-green-200 bg-green-50">
+                <Mail className="h-4 w-4 text-green-600" />
+                <AlertDescription className="text-green-800">
+                  We've sent password reset instructions to <strong>{email}</strong>.
+                  Please check your inbox and follow the link to reset your password.
+                </AlertDescription>
+              </Alert>
+              <div className="text-sm text-gray-600 space-y-2">
+                <p>The reset link will expire in 1 hour for security reasons.</p>
+                <p>Didn't receive the email? Check your spam folder or try again.</p>
+              </div>
+              <div className="flex gap-2">
+                <Button variant="outline" onClick={() => {
+                  setSuccess(false);
+                  setEmail("");
+                }}>
+                  Try Again
+                </Button>
+                <Button asChild>
+                  <Link href="/auth/login">Back to Login</Link>
+                </Button>
+              </div>
+            </div>
           </CardContent>
         </Card>
       ) : (
@@ -64,8 +123,7 @@ export function ForgotPasswordForm({
           <CardHeader>
             <CardTitle className="text-2xl">Reset Your Password</CardTitle>
             <CardDescription>
-              Type in your email and we&apos;ll send you a link to reset your
-              password
+              Enter your email address and we'll send you a link to reset your password
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -82,18 +140,24 @@ export function ForgotPasswordForm({
                     onChange={(e) => setEmail(e.target.value)}
                   />
                 </div>
-                {error && <p className="text-sm text-red-500">{error}</p>}
+                
+                {error && (
+                  <Alert className="border-red-200 bg-red-50">
+                    <AlertCircle className="h-4 w-4 text-red-600" />
+                    <AlertDescription className="text-red-800">
+                      {error}
+                    </AlertDescription>
+                  </Alert>
+                )}
+                
                 <Button type="submit" className="w-full" disabled={isLoading}>
-                  {isLoading ? "Sending..." : "Send reset email"}
+                  {isLoading ? "Sending reset link..." : "Send Reset Link"}
                 </Button>
               </div>
               <div className="mt-4 text-center text-sm">
-                Already have an account?{" "}
-                <Link
-                  href="/auth/login"
-                  className="underline underline-offset-4"
-                >
-                  Login
+                Remember your password?{" "}
+                <Link href="/auth/login" className="underline underline-offset-4">
+                  Back to Login
                 </Link>
               </div>
             </form>
