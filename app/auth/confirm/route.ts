@@ -7,7 +7,7 @@ export async function GET(request: NextRequest) {
   const { searchParams } = new URL(request.url);
   const token_hash = searchParams.get("token_hash");
   const type = searchParams.get("type");
-  const next = searchParams.get("next") ?? "/";
+  const next = searchParams.get("next") ?? "/protected";
 
   if (token_hash && type) {
     const supabase = await createClient();
@@ -16,15 +16,16 @@ export async function GET(request: NextRequest) {
       type: type as EmailOtpType,
       token_hash,
     });
+    
     if (!error) {
-      // redirect user to specified redirect URL or root of app
-      redirect(next);
+      // Redirect to confirmation success page with next URL
+      redirect(`/auth/confirm-success?next=${encodeURIComponent(next)}`);
     } else {
-      // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
+      // Redirect to confirmation error page with error message
+      redirect(`/auth/confirm-error?error=${encodeURIComponent(error.message)}`);
     }
   }
 
-  // redirect the user to an error page with some instructions
-  redirect(`/auth/error?error=No token hash or type`);
+  // Redirect to confirmation error page for missing parameters
+  redirect(`/auth/confirm-error?error=${encodeURIComponent("Invalid confirmation link. Please check your email and try again.")}`);
 }
