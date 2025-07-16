@@ -62,14 +62,19 @@ export function ForgotPasswordForm({
         if (error.message.includes("Invalid email")) {
           setError("Please enter a valid email address");
         } else if (error.message.includes("not found")) {
-          setError("No account found with this email address");
+          // For security reasons, we don't want to reveal if an email exists or not
+          // So we'll show success even if the email doesn't exist
+          setSuccess(true);
         } else if (error.message.includes("rate limit")) {
           setError("Too many requests. Please wait a few minutes before trying again");
         } else {
           setError(error.message);
         }
-        setIsLoading(false);
-        return;
+        
+        if (!error.message.includes("not found")) {
+          setIsLoading(false);
+          return;
+        }
       }
 
       setSuccess(true);
@@ -96,13 +101,15 @@ export function ForgotPasswordForm({
               <Alert className="border-green-200 bg-green-50">
                 <Mail className="h-4 w-4 text-green-600" />
                 <AlertDescription className="text-green-800">
-                  We've sent password reset instructions to <strong>{email}</strong>.
-                  Please check your inbox and follow the link to reset your password.
+                  If an account with the email <strong>{email}</strong> exists, you will receive 
+                  password reset instructions shortly. Please check your inbox and follow the link 
+                  to reset your password.
                 </AlertDescription>
               </Alert>
               <div className="text-sm text-gray-600 space-y-2">
-                <p>The reset link will expire in 1 hour for security reasons.</p>
-                <p>Didn't receive the email? Check your spam folder or try again.</p>
+                <p><strong>Important:</strong> The reset link will expire in 1 hour for security reasons.</p>
+                <p>Didn't receive the email? Check your spam folder or try again with a different email address.</p>
+                <p>Make sure to use the same email address you used to create your account.</p>
               </div>
               <div className="flex gap-2">
                 <Button variant="outline" onClick={() => {
@@ -139,6 +146,9 @@ export function ForgotPasswordForm({
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                   />
+                  <div className="text-sm text-gray-600">
+                    Enter the email address associated with your account
+                  </div>
                 </div>
                 
                 {error && (
