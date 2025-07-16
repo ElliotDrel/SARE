@@ -9,6 +9,8 @@ export async function GET(request: NextRequest) {
   const type = searchParams.get("type");
   const next = searchParams.get("next") ?? "/";
 
+  console.log("Auth confirm - Type:", type, "Token hash:", token_hash ? "present" : "missing");
+
   if (token_hash && type) {
     const supabase = await createClient();
 
@@ -16,15 +18,25 @@ export async function GET(request: NextRequest) {
       type: type as EmailOtpType,
       token_hash,
     });
+
     if (!error) {
-      // redirect user to specified redirect URL or root of app
-      redirect(next);
+      // Handle different auth types
+      if (type === 'recovery') {
+        // For password recovery, redirect to update password page
+        console.log("Password recovery confirmed, redirecting to update-password");
+        redirect("/auth/update-password");
+      } else {
+        // For other types (signup, email confirmation), redirect to specified URL
+        redirect(next);
+      }
     } else {
+      console.error("Auth verification error:", error);
       // redirect the user to an error page with some instructions
-      redirect(`/auth/error?error=${error?.message}`);
+      redirect(`/auth/error?error=${encodeURIComponent(error.message)}`);
     }
   }
 
   // redirect the user to an error page with some instructions
-  redirect(`/auth/error?error=No token hash or type`);
+  console.error("Auth confirm - Missing token hash or type");
+  redirect(`/auth/error?error=${encodeURIComponent("Invalid or missing authentication parameters")}`);
 }

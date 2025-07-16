@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { AlertCircle, CheckCircle, Lock } from "lucide-react";
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { useState, useEffect } from "react";
 
 export function UpdatePasswordForm({
@@ -30,14 +30,14 @@ export function UpdatePasswordForm({
   const [sessionChecked, setSessionChecked] = useState(false);
   const [hasValidSession, setHasValidSession] = useState(false);
   const router = useRouter();
-  const searchParams = useSearchParams();
 
   const supabase = createClient();
 
-  // Check if user has a valid session from the reset link
+  // Check if user has a valid session
   useEffect(() => {
     const checkSession = async () => {
       try {
+        console.log("Checking session for password update...");
         const { data: { session }, error } = await supabase.auth.getSession();
         
         if (error) {
@@ -48,9 +48,10 @@ export function UpdatePasswordForm({
         }
 
         if (session?.user) {
+          console.log("Valid session found:", session.user.email);
           setHasValidSession(true);
-          console.log("Valid session found for password reset");
         } else {
+          console.log("No valid session found");
           setError("Invalid or expired reset link. Please request a new password reset.");
         }
       } catch (error) {
@@ -62,22 +63,6 @@ export function UpdatePasswordForm({
     };
 
     checkSession();
-  }, [supabase.auth]);
-
-  // Handle auth state changes
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (event === 'PASSWORD_RECOVERY') {
-          setHasValidSession(true);
-          setError(null);
-        } else if (event === 'SIGNED_OUT') {
-          setHasValidSession(false);
-        }
-      }
-    );
-
-    return () => subscription.unsubscribe();
   }, [supabase.auth]);
 
   const handleUpdatePassword = async (e: React.FormEvent) => {
@@ -105,11 +90,13 @@ export function UpdatePasswordForm({
     }
 
     try {
+      console.log("Updating password...");
       const { error } = await supabase.auth.updateUser({ 
         password: password 
       });
 
       if (error) {
+        console.error("Password update error:", error);
         if (error.message.includes("session_not_found")) {
           setError("Your reset session has expired. Please request a new password reset.");
         } else if (error.message.includes("same_password")) {
@@ -121,6 +108,7 @@ export function UpdatePasswordForm({
         return;
       }
 
+      console.log("Password updated successfully");
       setSuccess(true);
       
       // Redirect to login after a short delay

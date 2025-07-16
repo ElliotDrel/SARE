@@ -53,11 +53,15 @@ export function ForgotPasswordForm({
         ? window.location.origin 
         : process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
+      console.log("Sending password reset for:", email);
+      console.log("Redirect URL:", `${origin}/auth/confirm?next=${encodeURIComponent('/auth/update-password')}`);
+
       const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${origin}/auth/update-password`,
+        redirectTo: `${origin}/auth/confirm?next=${encodeURIComponent('/auth/update-password')}`,
       });
 
       if (error) {
+        console.error("Password reset error:", error);
         // Handle specific error cases
         if (error.message.includes("Invalid email")) {
           setError("Please enter a valid email address");
@@ -77,6 +81,7 @@ export function ForgotPasswordForm({
         }
       }
 
+      console.log("Password reset email sent successfully");
       setSuccess(true);
     } catch (error: unknown) {
       console.error("Password reset error:", error);
