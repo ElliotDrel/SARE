@@ -1,7 +1,11 @@
+"use client";
+
 import Link from "next/link";
 import { AuthButton } from "./auth-button";
 import { MobileMenu } from "./mobile-menu";
-import { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/client";
+import { useState, useEffect } from "react";
+import type { User } from "@supabase/supabase-js";
 
 const navigationLinks = [
   { name: "Home", href: "/" },
@@ -10,11 +14,32 @@ const navigationLinks = [
   { name: "Contact", href: "/contact" },
 ];
 
-export async function Header() {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+export function Header() {
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    const supabase = createClient();
+    
+    // Get initial session
+    const getInitialSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+      setIsLoading(false);
+    };
+
+    getInitialSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+        setIsLoading(false);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   return (
     <header className="bg-primary-teal text-white sticky top-0 z-50">
@@ -44,7 +69,7 @@ export async function Header() {
           </div>
 
           {/* Mobile Menu */}
-          <MobileMenu navigationLinks={navigationLinks} user={user} />
+          <MobileMenu navigationLinks={navigationLinks} user={user} isLoading={isLoading} />
         </div>
       </div>
     </header>

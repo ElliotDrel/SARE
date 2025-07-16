@@ -4,14 +4,22 @@ import Link from "next/link";
 import { Button } from "./ui/button";
 import { createClient } from "@/lib/supabase/client";
 import { LogoutButton } from "./logout-button";
+import { EnvVarWarning } from "./env-var-warning";
 import { useState, useEffect } from "react";
 import type { User } from "@supabase/supabase-js";
+import { hasEnvVars } from "@/lib/utils";
 
 export function AuthButton() {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    // Check if we have environment variables first
+    if (!hasEnvVars) {
+      setIsLoading(false);
+      return;
+    }
+
     const supabase = createClient();
     
     // Get initial session
@@ -33,6 +41,11 @@ export function AuthButton() {
 
     return () => subscription.unsubscribe();
   }, []);
+
+  // Show environment variable warning if env vars are missing
+  if (!hasEnvVars) {
+    return <EnvVarWarning />;
+  }
 
   // Show loading state to prevent hydration mismatch
   if (isLoading) {

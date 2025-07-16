@@ -4,8 +4,10 @@ import Link from "next/link";
 import { useState } from "react";
 import { Button } from "./ui/button";
 import { LogoutButton } from "./logout-button";
+import { Badge } from "./ui/badge";
 import { Menu, X } from "lucide-react";
 import { User } from "@supabase/supabase-js";
+import { hasEnvVars } from "@/lib/utils";
 
 interface NavigationLink {
   name: string;
@@ -15,9 +17,10 @@ interface NavigationLink {
 interface MobileMenuProps {
   navigationLinks: NavigationLink[];
   user: User | null;
+  isLoading?: boolean;
 }
 
-export function MobileMenu({ navigationLinks, user }: MobileMenuProps) {
+export function MobileMenu({ navigationLinks, user, isLoading = false }: MobileMenuProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   return (
@@ -49,7 +52,26 @@ export function MobileMenu({ navigationLinks, user }: MobileMenuProps) {
               ))}
             </nav>
             <div className="mt-4 pt-4 border-t border-primary-teal/20">
-              {user ? (
+              {!hasEnvVars ? (
+                <div className="flex flex-col gap-2">
+                  <Badge variant={"outline"} className="font-normal text-white border-white">
+                    Supabase environment variables required
+                  </Badge>
+                  <div className="flex gap-2">
+                    <Button size="sm" variant={"outline"} disabled className="bg-white/20 text-white border-white">
+                      Sign in
+                    </Button>
+                    <Button size="sm" variant={"default"} disabled className="bg-white/20 text-white">
+                      Sign up
+                    </Button>
+                  </div>
+                </div>
+              ) : isLoading ? (
+                <div className="flex gap-2">
+                  <div className="h-9 w-16 bg-white/20 animate-pulse rounded"></div>
+                  <div className="h-9 w-16 bg-white/20 animate-pulse rounded"></div>
+                </div>
+              ) : user ? (
                 <div className="flex flex-col gap-2">
                   <div className="text-white text-sm">
                     Hey, {user.email}!
