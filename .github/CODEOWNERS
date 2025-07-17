@@ -1,0 +1,9 @@
+# CODEOWNERS file - defines who owns/reviews code changes
+# 
+# This file is monitored by automated tests in src/test/codeowners.test.ts
+# When adding new owners, the tests will still pass as long as @ElliotDrel remains
+# 
+# Format: path/pattern @username1 @username2
+# * means all files in the repository
+
+* @ElliotDrel
