@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AuthButton } from "./auth-button";
+import { AuthStatus } from "./auth-status";
 import { MobileMenu } from "./mobile-menu";
 import { createClient } from "@/lib/supabase/server";
 
@@ -38,9 +38,9 @@ export async function Header() {
             ))}
           </nav>
 
-          {/* Desktop Auth Button */}
+          {/* Desktop Auth Status - Client-side for real-time updates */}
           <div className="hidden md:block">
-            <AuthButton />
+            <AuthStatus />
           </div>
 
           {/* Mobile Menu */}

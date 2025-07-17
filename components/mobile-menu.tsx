@@ -1,11 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "./ui/button";
 import { LogoutButton } from "./logout-button";
-import { Menu, X } from "lucide-react";
-import { User } from "@supabase/supabase-js";
+import { Menu, X, User } from "lucide-react";
+import { User as SupabaseUser } from "@supabase/supabase-js";
+import { createClient } from "@/lib/supabase/client";
 
 interface NavigationLink {
   name: string;
@@ -14,11 +15,32 @@ interface NavigationLink {
 
 interface MobileMenuProps {
   navigationLinks: NavigationLink[];
-  user: User | null;
+  user: SupabaseUser | null; // Initial user state from server
 }
 
-export function MobileMenu({ navigationLinks, user }: MobileMenuProps) {
+export function MobileMenu({ navigationLinks, user: initialUser }: MobileMenuProps) {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [user, setUser] = useState<SupabaseUser | null>(initialUser);
+  const supabase = createClient();
+
+  useEffect(() => {
+    // Get initial session
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, [supabase.auth]);
 
   return (
     <>
@@ -50,9 +72,10 @@ export function MobileMenu({ navigationLinks, user }: MobileMenuProps) {
             </nav>
             <div className="mt-4 pt-4 border-t border-primary-teal/20">
               {user ? (
-                <div className="flex flex-col gap-2">
-                  <div className="text-white text-sm">
-                    Hey, {user.email}!
+                <div className="flex flex-col gap-3">
+                  <div className="flex items-center gap-2 text-white">
+                    <User className="h-4 w-4" />
+                    <span className="text-sm font-medium">{user.email}</span>
                   </div>
                   <LogoutButton />
                 </div>
