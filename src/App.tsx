@@ -13,6 +13,10 @@ import AuthenticatedLayout from "./components/AuthenticatedLayout";
 import Dashboard from "./pages/Dashboard";
 import LearnPrepare from "./pages/LearnPrepare";
 import InviteTrack from "./pages/InviteTrack";
+import SelfReflection from "./pages/SelfReflection";
+import StorytellerWelcome from "./pages/storyteller/StorytellerWelcome";
+import StorytellerWrite from "./pages/storyteller/StorytellerWrite";
+import StorytellerThankYou from "./pages/storyteller/StorytellerThankYou";
 
 const queryClient = new QueryClient();
 
@@ -29,6 +33,11 @@ const App = () => (
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/sign-in" element={<SignIn />} />
           
+          {/* Storyteller Portal Routes */}
+          <Route path="/storyteller/welcome" element={<StorytellerWelcome />} />
+          <Route path="/storyteller/write" element={<StorytellerWrite />} />
+          <Route path="/storyteller/thank-you" element={<StorytellerThankYou />} />
+          
           {/* Protected Authenticated Routes */}
           <Route
             path="/app"
@@ -41,7 +50,7 @@ const App = () => (
             <Route index element={<Dashboard />} />
             <Route path="learn_prepare" element={<LearnPrepare />} />
             <Route path="invite_track" element={<InviteTrack />} />
-            {/* <Route path="self_reflection" element={<SelfReflection />} /> */}
+            <Route path="self_reflection" element={<SelfReflection />} />
             {/* <Route path="report" element={<Report />} /> */}
             {/* <Route path="notifications" element={<Notifications />} /> */}
             {/* <Route path="profile" element={<Profile />} /> */}

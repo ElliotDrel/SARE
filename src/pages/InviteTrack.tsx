@@ -56,6 +56,12 @@ import {
 import { useStorytellers, useAddStoryteller, useUpdateStoryteller } from "@/hooks/useStorytellers";
 import { useProfile, useStoryCount } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
+import { 
+  useSendStorytellerInvitation, 
+  useSendStorytellerReminder, 
+  useBulkSendInvitations,
+  getInvitationStatusDisplay 
+} from "@/hooks/useMagicLinkInvitations";
 import { formatDistanceToNow } from "date-fns";
 import { Database } from "@/integrations/supabase/types";
 
@@ -75,6 +81,11 @@ const InviteTrack = () => {
   const { data: storytellers = [], isLoading: storytellersLoading } = useStorytellers();
   const addStoryteller = useAddStoryteller();
   const updateStoryteller = useUpdateStoryteller();
+  
+  // Magic link invitation hooks
+  const sendInvitation = useSendStorytellerInvitation();
+  const sendReminder = useSendStorytellerReminder();
+  const bulkSendInvitations = useBulkSendInvitations();
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
@@ -209,22 +220,106 @@ const InviteTrack = () => {
     }
   };
 
-  const getStatusBadge = (status: string) => {
-    const statusConfig = {
-      pending: { variant: "secondary" as const, icon: Clock, text: "Pending" },
-      sent: { variant: "outline" as const, icon: Send, text: "Sent" },
-      opened: { variant: "default" as const, icon: Mail, text: "Opened" },
-      submitted: { variant: "default" as const, icon: CheckCircle2, text: "Submitted" },
-      reminded: { variant: "outline" as const, icon: AlertCircle, text: "Reminded" },
-    };
+  // Handle sending magic link invitation
+  const handleSendInvitation = async (storyteller: Storyteller) => {
+    try {
+      await sendInvitation.mutateAsync({
+        storytellerId: storyteller.id,
+        storytellerEmail: storyteller.email,
+        storytellerName: storyteller.name,
+      });
+      
+      toast({
+        title: "Invitation sent!",
+        description: `Magic link invitation sent to ${storyteller.name}`,
+      });
+    } catch (error) {
+      console.error("Failed to send invitation:", error);
+      toast({
+        title: "Failed to send invitation",
+        description: "There was an error sending the invitation. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
-    const config = statusConfig[status as keyof typeof statusConfig] || statusConfig.pending;
-    const Icon = config.icon;
+  // Handle sending reminder
+  const handleSendReminder = async (storyteller: Storyteller) => {
+    try {
+      await sendReminder.mutateAsync({
+        storytellerId: storyteller.id,
+        storytellerEmail: storyteller.email,
+        storytellerName: storyteller.name,
+      });
+      
+      toast({
+        title: "Reminder sent!",
+        description: `Follow-up invitation sent to ${storyteller.name}`,
+      });
+    } catch (error) {
+      console.error("Failed to send reminder:", error);
+      toast({
+        title: "Failed to send reminder",
+        description: "There was an error sending the reminder. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
 
+  // Handle bulk send invitations
+  const handleBulkSendInvitations = async () => {
+    const pendingStorytellers = filteredStorytellers.filter(
+      s => s.invitation_status === 'pending'
+    );
+    
+    if (pendingStorytellers.length === 0) {
+      toast({
+        title: "No pending invitations",
+        description: "All storytellers have already been invited.",
+      });
+      return;
+    }
+
+    try {
+      const results = await bulkSendInvitations.mutateAsync(
+        pendingStorytellers.map(s => ({
+          storytellerId: s.id,
+          storytellerEmail: s.email,
+          storytellerName: s.name,
+        }))
+      );
+
+      const successCount = results.filter(r => r.success).length;
+      const failureCount = results.filter(r => !r.success).length;
+
+      toast({
+        title: "Bulk invitations sent",
+        description: `${successCount} invitations sent successfully${
+          failureCount > 0 ? `, ${failureCount} failed` : ''
+        }`,
+        variant: failureCount > 0 ? "destructive" : "default",
+      });
+    } catch (error) {
+      console.error("Bulk send failed:", error);
+      toast({
+        title: "Bulk send failed",
+        description: "There was an error sending bulk invitations.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const getStatusBadge = (status: string | null, lastContacted?: string | null) => {
+    const statusDisplay = getInvitationStatusDisplay(status, lastContacted);
+    
     return (
-      <Badge variant={config.variant} className="gap-1">
-        <Icon className="h-3 w-3" />
-        {config.text}
+      <Badge variant={statusDisplay.variant} className="gap-1" title={statusDisplay.description}>
+        {status === 'pending' && <Clock className="h-3 w-3" />}
+        {status === 'sent' && <Send className="h-3 w-3" />}
+        {status === 'reminded' && <AlertCircle className="h-3 w-3" />}
+        {status === 'opened' && <Mail className="h-3 w-3" />}
+        {status === 'submitted' && <CheckCircle2 className="h-3 w-3" />}
+        {statusDisplay.label}
       </Badge>
     );
   };
@@ -378,6 +473,18 @@ const InviteTrack = () => {
             </div>
             
             <div className="flex items-center gap-2">
+              {storytellers.filter(s => s.invitation_status === 'pending').length > 0 && (
+                <Button 
+                  onClick={handleBulkSendInvitations} 
+                  variant="outline" 
+                  size="sm"
+                  disabled={bulkSendInvitations.isPending}
+                >
+                  <Send className="h-4 w-4 mr-2" />
+                  {bulkSendInvitations.isPending ? 'Sending...' : 'Send All Invitations'}
+                </Button>
+              )}
+              
               <Button onClick={exportToCSV} variant="outline" size="sm">
                 <Download className="h-4 w-4 mr-2" />
                 Export
@@ -503,7 +610,7 @@ const InviteTrack = () => {
                     <TableRow key={storyteller.id}>
                       <TableCell className="font-medium">{storyteller.name}</TableCell>
                       <TableCell>{storyteller.email}</TableCell>
-                      <TableCell>{getStatusBadge(storyteller.invitation_status)}</TableCell>
+                      <TableCell>{getStatusBadge(storyteller.invitation_status, storyteller.last_contacted_at)}</TableCell>
                       <TableCell className="text-sm text-muted-foreground">
                         {storyteller.last_contacted_at
                           ? formatDistanceToNow(new Date(storyteller.last_contacted_at), { addSuffix: true })
@@ -523,9 +630,27 @@ const InviteTrack = () => {
                               Edit
                             </DropdownMenuItem>
                             {storyteller.invitation_status === 'pending' && (
-                              <DropdownMenuItem onClick={() => handleMarkInvited(storyteller)}>
+                              <DropdownMenuItem 
+                                onClick={() => handleSendInvitation(storyteller)}
+                                disabled={sendInvitation.isPending}
+                              >
+                                <Mail className="h-4 w-4 mr-2" />
+                                Send Invitation
+                              </DropdownMenuItem>
+                            )}
+                            {storyteller.invitation_status === 'sent' && (
+                              <DropdownMenuItem 
+                                onClick={() => handleSendReminder(storyteller)}
+                                disabled={sendReminder.isPending}
+                              >
                                 <Send className="h-4 w-4 mr-2" />
-                                Mark as Invited
+                                Send Reminder
+                              </DropdownMenuItem>
+                            )}
+                            {storyteller.invitation_status === 'pending' && (
+                              <DropdownMenuItem onClick={() => handleMarkInvited(storyteller)}>
+                                <CheckCircle2 className="h-4 w-4 mr-2" />
+                                Mark as Invited (Manual)
                               </DropdownMenuItem>
                             )}
                           </DropdownMenuContent>

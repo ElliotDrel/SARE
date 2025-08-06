@@ -28,6 +28,7 @@ export type Database = {
           reflection_completed: boolean | null
           updated_at: string
           user_id: string
+          user_type: Database["public"]["Enums"]["user_type"] | null
         }
         Insert: {
           collection_goal?: number | null
@@ -42,6 +43,7 @@ export type Database = {
           reflection_completed?: boolean | null
           updated_at?: string
           user_id: string
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Update: {
           collection_goal?: number | null
@@ -56,6 +58,7 @@ export type Database = {
           reflection_completed?: boolean | null
           updated_at?: string
           user_id?: string
+          user_type?: Database["public"]["Enums"]["user_type"] | null
         }
         Relationships: []
       }
@@ -178,52 +181,120 @@ export type Database = {
           },
         ]
       }
+      story_drafts: {
+        Row: {
+          auto_saved_at: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          progress_metadata: Json | null
+          story_one: string | null
+          story_three: string | null
+          story_two: string | null
+          storyteller_id: string
+          updated_at: string
+        }
+        Insert: {
+          auto_saved_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          progress_metadata?: Json | null
+          story_one?: string | null
+          story_three?: string | null
+          story_two?: string | null
+          storyteller_id: string
+          updated_at?: string
+        }
+        Update: {
+          auto_saved_at?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          progress_metadata?: Json | null
+          story_one?: string | null
+          story_three?: string | null
+          story_two?: string | null
+          storyteller_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "story_drafts_storyteller_id_fkey"
+            columns: ["storyteller_id"]
+            isOneToOne: false
+            referencedRelation: "storytellers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       storytellers: {
         Row: {
+          access_method: Database["public"]["Enums"]["access_method"] | null
+          auth_user_id: string | null
           created_at: string
           email: string
+          first_access_at: string | null
           id: string
           invitation_status:
             | Database["public"]["Enums"]["invitation_status"]
             | null
+          invitation_token: string | null
           invited_at: string | null
+          last_access_at: string | null
           last_contacted_at: string | null
+          magic_link_sent_at: string | null
           name: string
           notes: string | null
           phone: string | null
           reminder_count: number | null
+          token_expires_at: string | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          access_method?: Database["public"]["Enums"]["access_method"] | null
+          auth_user_id?: string | null
           created_at?: string
           email: string
+          first_access_at?: string | null
           id?: string
           invitation_status?:
             | Database["public"]["Enums"]["invitation_status"]
             | null
+          invitation_token?: string | null
           invited_at?: string | null
+          last_access_at?: string | null
           last_contacted_at?: string | null
+          magic_link_sent_at?: string | null
           name: string
           notes?: string | null
           phone?: string | null
           reminder_count?: number | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          access_method?: Database["public"]["Enums"]["access_method"] | null
+          auth_user_id?: string | null
           created_at?: string
           email?: string
+          first_access_at?: string | null
           id?: string
           invitation_status?:
             | Database["public"]["Enums"]["invitation_status"]
             | null
+          invitation_token?: string | null
           invited_at?: string | null
+          last_access_at?: string | null
           last_contacted_at?: string | null
+          magic_link_sent_at?: string | null
           name?: string
           notes?: string | null
           phone?: string | null
           reminder_count?: number | null
+          token_expires_at?: string | null
           updated_at?: string
           user_id?: string
         }
@@ -238,12 +309,38 @@ export type Database = {
         Args: { target_user_id: string }
         Returns: boolean
       }
+      cleanup_expired_tokens: {
+        Args: {}
+        Returns: undefined
+      }
+      get_storyteller_by_email: {
+        Args: { target_email: string }
+        Returns: {
+          id: string
+          name: string
+          email: string
+          auth_user_id: string | null
+          invitation_status: string | null
+          access_method: string | null
+          has_submitted: boolean
+          has_draft: boolean
+        }[]
+      }
       get_user_story_count: {
         Args: { target_user_id: string }
         Returns: number
       }
+      increment_reminder_count: {
+        Args: { storyteller_id: string }
+        Returns: number
+      }
+      update_storyteller_access: {
+        Args: { storyteller_id: string; auth_user_id?: string }
+        Returns: undefined
+      }
     }
     Enums: {
+      access_method: "pending" | "magic_link" | "return_user" | "direct_access"
       collection_status: "preparing" | "collecting" | "reflecting" | "completed"
       invitation_status:
         | "pending"
@@ -252,6 +349,7 @@ export type Database = {
         | "submitted"
         | "reminded"
       story_status: "draft" | "submitted"
+      user_type: "requester" | "storyteller"
     }
     CompositeTypes: {
       [_ in never]: never
