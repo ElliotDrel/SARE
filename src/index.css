@@ -2,41 +2,72 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* SARE Design System - Calm, trustworthy, and encouraging */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Base colors - soft and professional */
+    --background: 0 0% 98%;
+    --foreground: 215 25% 15%;
 
+    /* Card surfaces */
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 215 25% 15%;
 
+    /* Popover surfaces */
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 215 25% 15%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Primary - calming blue for trust and progress */
+    --primary: 210 85% 55%;
+    --primary-foreground: 0 0% 98%;
+    --primary-glow: 210 85% 65%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary - soft gray-blue for supporting elements */
+    --secondary: 215 20% 92%;
+    --secondary-foreground: 215 25% 25%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted - gentle backgrounds */
+    --muted: 215 15% 95%;
+    --muted-foreground: 215 15% 50%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent - warm encouraging tone */
+    --accent: 35 85% 65%;
+    --accent-foreground: 215 25% 15%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Success - for milestones and completion */
+    --success: 142 70% 45%;
+    --success-foreground: 0 0% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Warning - gentle orange for attention */
+    --warning: 25 85% 60%;
+    --warning-foreground: 0 0% 98%;
 
-    --radius: 0.5rem;
+    /* Destructive */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 0 0% 98%;
+
+    /* Interactive elements */
+    --border: 215 20% 88%;
+    --input: 215 20% 92%;
+    --ring: 210 85% 55%;
+
+    --radius: 0.75rem;
+
+    /* Beautiful gradients for SARE */
+    --gradient-primary: linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary-glow)));
+    --gradient-hero: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--accent)) 100%);
+    --gradient-card: linear-gradient(145deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%);
+    --gradient-progress: linear-gradient(90deg, hsl(var(--primary)), hsl(var(--success)));
+
+    /* Elegant shadows using primary colors */
+    --shadow-elegant: 0 8px 32px hsl(var(--primary) / 0.12);
+    --shadow-card: 0 4px 16px hsl(var(--primary) / 0.08);
+    --shadow-glow: 0 0 24px hsl(var(--primary-glow) / 0.3);
+
+    /* Smooth transitions */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --sidebar-background: 0 0% 98%;
 
