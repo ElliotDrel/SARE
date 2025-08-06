@@ -14,7 +14,8 @@ import {
   Clock,
   CheckCircle2,
   ArrowRight,
-  Target
+  Target,
+  Lightbulb
 } from "lucide-react";
 import { useProfile, useStoryCount } from "@/hooks/useProfile";
 import { useRecentActivity } from "@/hooks/useStory";
@@ -55,6 +56,10 @@ const Dashboard = () => {
 
   // Determine next step
   const getNextStep = () => {
+    // Check if user needs to complete Learn & Prepare first
+    if (profile?.collection_status === 'preparing') {
+      return { text: "Start with Learn & Prepare to understand who to ask", action: "/app/learn_prepare" };
+    }
     if (storytellers.length === 0) {
       return { text: "Start by inviting people to share stories about your strengths", action: "/app/invite_track" };
     }
@@ -193,6 +198,13 @@ const Dashboard = () => {
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-4">
+            <Link to="/app/learn_prepare" className="block">
+              <Button variant="outline" className="w-full justify-start" size="sm">
+                <Lightbulb className="h-4 w-4 mr-2" />
+                Learn & Prepare
+              </Button>
+            </Link>
+            
             <Link to="/app/invite_track" className="block">
               <Button variant="outline" className="w-full justify-start" size="sm">
                 <Plus className="h-4 w-4 mr-2" />

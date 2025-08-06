@@ -73,9 +73,9 @@ const SignUp = () => {
       } else {
         toast({
           title: "Account Created Successfully",
-          description: "Please check your email to confirm your account.",
+          description: "Welcome to SARE! Let's start by learning who to ask for stories.",
         });
-        navigate('/');
+        navigate('/app/learn_prepare');
       }
     } catch (error) {
       toast({
