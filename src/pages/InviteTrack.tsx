@@ -57,6 +57,9 @@ import { useStorytellers, useAddStoryteller, useUpdateStoryteller } from "@/hook
 import { useProfile, useStoryCount } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { formatDistanceToNow } from "date-fns";
+import { Database } from "@/integrations/supabase/types";
+
+type Storyteller = Database["public"]["Tables"]["storytellers"]["Row"];
 
 interface StorytellerFormData {
   name: string;
@@ -75,7 +78,7 @@ const InviteTrack = () => {
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [editingStoryteller, setEditingStoryteller] = useState<any>(null);
+  const [editingStoryteller, setEditingStoryteller] = useState<Storyteller | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   
@@ -138,7 +141,7 @@ const InviteTrack = () => {
     }
   };
 
-  const handleEdit = (storyteller: any) => {
+  const handleEdit = (storyteller: Storyteller) => {
     setEditingStoryteller(storyteller);
     setFormData({
       name: storyteller.name,
@@ -182,7 +185,7 @@ const InviteTrack = () => {
     }
   };
 
-  const handleMarkInvited = async (storyteller: any) => {
+  const handleMarkInvited = async (storyteller: Storyteller) => {
     try {
       await updateStoryteller.mutateAsync({
         id: storyteller.id,
