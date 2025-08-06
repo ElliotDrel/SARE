@@ -1,3 +1,4 @@
+import React from "react";
 import { CheckCircle, Circle, Users, Lightbulb, Heart, FileText } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -5,7 +6,7 @@ interface TimelineStep {
   id: string;
   title: string;
   description: string;
-  icon: any;
+  icon: React.ComponentType<React.SVGProps<SVGSVGElement>>;
   completed: boolean;
   current: boolean;
 }
