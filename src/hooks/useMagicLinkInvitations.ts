@@ -77,12 +77,17 @@ export const useSendStorytellerReminder = () => {
     mutationFn: async ({ storytellerId, storytellerEmail, storytellerName }: SendInvitationParams) => {
       if (!user || !profile) throw new Error("User not authenticated");
 
+      // Increment reminder count
+      const { error: incrementError } = await supabase.rpc('increment_reminder_count', { 
+        storyteller_id: storytellerId 
+      });
+      if (incrementError) throw incrementError;
+
       // Update storyteller reminder info
       const { data: storyteller, error: updateError } = await supabase
         .from("storytellers")
         .update({
           last_contacted_at: new Date().toISOString(),
-          reminder_count: supabase.rpc('increment_reminder_count', { storyteller_id: storytellerId }),
           invitation_status: 'reminded'
         })
         .eq("id", storytellerId)
