@@ -87,8 +87,7 @@ export const useSendStorytellerReminder = () => {
       const { data: storyteller, error: updateError } = await supabase
         .from("storytellers")
         .update({
-          last_contacted_at: new Date().toISOString(),
-          invitation_status: 'reminded'
+          last_contacted_at: new Date().toISOString()
         })
         .eq("id", storytellerId)
         .select()

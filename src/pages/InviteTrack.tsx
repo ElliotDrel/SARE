@@ -696,7 +696,7 @@ const InviteTrack = () => {
                                 Send Invitation
                               </DropdownMenuItem>
                             )}
-                            {storyteller.invitation_status === 'sent' && (
+                            {(storyteller.invitation_status === 'sent' || storyteller.invitation_status === 'reminded') && (
                               <DropdownMenuItem 
                                 onClick={() => handleSendReminder(storyteller)}
                                 disabled={sendReminder.isPending}
