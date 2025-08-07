@@ -37,7 +37,7 @@ const StorytellerThankYou = () => {
   }, [storyteller, submittedStory, storyLoading, navigate, token]);
 
   const handleEditStory = () => {
-    navigate(`/storyteller/write?token=${token}`);
+    navigate(`/storyteller/write?token=${token}&edit=true`);
   };
 
   if (storytellerLoading || storyLoading) {

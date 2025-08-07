@@ -35,6 +35,7 @@ const StorytellerWrite = () => {
   const { toast } = useToast();
   
   const token = searchParams.get('token');
+  const isEditing = searchParams.get('edit') === 'true';
   const { data: storyteller, isLoading: storytellerLoading } = useStorytellerByToken(token);
   const { data: existingDraft } = useStoryDraft(storyteller?.id || null);
   const { data: submittedStory } = useSubmittedStory(storyteller?.id || null);
@@ -59,7 +60,7 @@ const StorytellerWrite = () => {
 
   // Load existing draft
   useEffect(() => {
-    if (existingDraft) {
+    if (existingDraft && !isEditing) {
       setFormData({
         story_one: existingDraft.story_one || "",
         story_two: existingDraft.story_two || "",
@@ -67,14 +68,26 @@ const StorytellerWrite = () => {
         notes: existingDraft.notes || ""
       });
     }
-  }, [existingDraft]);
+  }, [existingDraft, isEditing]);
 
-  // Redirect if already submitted
+  // Load submitted story for editing
   useEffect(() => {
-    if (submittedStory && storyteller) {
+    if (submittedStory && isEditing) {
+      setFormData({
+        story_one: submittedStory.story_one || "",
+        story_two: submittedStory.story_two || "",
+        story_three: submittedStory.story_three || "",
+        notes: submittedStory.notes || ""
+      });
+    }
+  }, [submittedStory, isEditing]);
+
+  // Redirect if already submitted (unless editing)
+  useEffect(() => {
+    if (submittedStory && storyteller && !isEditing) {
       navigate(`/storyteller/thank-you?token=${token}`);
     }
-  }, [submittedStory, storyteller, navigate, token]);
+  }, [submittedStory, storyteller, navigate, token, isEditing]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
