@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -71,9 +71,9 @@ const SelfReflection = () => {
     }, 2000); // Auto-save after 2 seconds of inactivity
 
     return () => clearTimeout(timeoutId);
-  }, [formData]);
+  }, [formData, handleAutoSave]);
 
-  const handleAutoSave = async () => {
+  const handleAutoSave = useCallback(async () => {
     if (isSaving) return;
     
     setIsSaving(true);
@@ -89,7 +89,7 @@ const SelfReflection = () => {
     } finally {
       setIsSaving(false);
     }
-  };
+  }, [isSaving, reflection, updateReflection, createReflection, formData, setLastSaved]);
 
   const handleInputChange = (field: keyof typeof formData, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));

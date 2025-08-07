@@ -310,7 +310,7 @@ export type Database = {
         Returns: boolean
       }
       cleanup_expired_tokens: {
-        Args: {}
+        Args: Record<string, never>
         Returns: undefined
       }
       get_storyteller_by_email: {
