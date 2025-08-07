@@ -4,10 +4,26 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link, useNavigate, useLocation } from "react-router-dom";
-import { ArrowRight, Mail, Lock } from "lucide-react";
+import { ArrowRight, Mail, Lock, Users, User } from "lucide-react";
 import Header from "@/components/Header";
 import { useAuth } from "@/hooks/useAuth";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+
+type UserType = 'unknown' | 'regular' | 'storyteller';
+
+interface StorytellerInfo {
+  id: string;
+  name: string;
+  email: string;
+  auth_user_id: string | null;
+  invitation_status: string | null;
+  access_method: string | null;
+  has_submitted: boolean;
+  has_draft: boolean;
+  invitation_token?: string;
+  token_expires_at?: string;
+}
 
 const SignIn = () => {
   const [formData, setFormData] = useState({
@@ -15,6 +31,10 @@ const SignIn = () => {
     password: ""
   });
   const [isLoading, setIsLoading] = useState(false);
+  const [userType, setUserType] = useState<UserType>('unknown');
+  const [storytellerInfo, setStorytellerInfo] = useState<StorytellerInfo | null>(null);
+  const [emailChecked, setEmailChecked] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   
   const { signIn, user } = useAuth();
   const navigate = useNavigate();
@@ -30,8 +50,133 @@ const SignIn = () => {
     }
   }, [user, navigate, location.state]);
 
+  // Check user type when email is entered
+  const checkUserType = async (email: string) => {
+    if (!email || email === formData.email) return; // Avoid duplicate checks
+    
+    setIsLoading(true);
+    
+    try {
+      // Check if this email belongs to a storyteller
+      const { data: storytellers, error } = await supabase
+        .rpc('get_storyteller_by_email', { target_email: email });
+
+      if (error) {
+        console.error('Error checking storyteller:', error);
+        setUserType('regular'); // Default to regular user if check fails
+        setEmailChecked(true);
+        return;
+      }
+
+      if (storytellers && storytellers.length > 0) {
+        // Get full storyteller info including invitation token
+        const { data: fullStorytellerData, error: storytellerError } = await supabase
+          .from('storytellers')
+          .select('*')
+          .eq('email', email)
+          .single();
+
+        if (storytellerError) {
+          console.error('Error getting full storyteller data:', storytellerError);
+          setUserType('regular');
+          setEmailChecked(true);
+          return;
+        }
+
+        // This is a storyteller
+        setUserType('storyteller');
+        setStorytellerInfo({
+          ...storytellers[0],
+          invitation_token: fullStorytellerData.invitation_token,
+          token_expires_at: fullStorytellerData.token_expires_at
+        });
+        setEmailChecked(true);
+      } else {
+        // This is a regular user
+        setUserType('regular');
+        setStorytellerInfo(null);
+        setEmailChecked(true);
+      }
+    } catch (error) {
+      console.error('Error checking user type:', error);
+      setUserType('regular'); // Default to regular user on error
+      setEmailChecked(true);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const sendMagicLink = async () => {
+    if (!storytellerInfo || !storytellerInfo.invitation_token) return;
+
+    setIsLoading(true);
+    
+    try {
+      // Update the storyteller's last contact time
+      await supabase
+        .from('storytellers')
+        .update({ 
+          last_contacted_at: new Date().toISOString(),
+          access_method: 'return_user' 
+        })
+        .eq('id', storytellerInfo.id);
+
+      // Send magic link to storyteller with proper metadata
+      const { error } = await supabase.auth.signInWithOtp({
+        email: formData.email,
+        options: {
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=storyteller_return&token=${storytellerInfo.invitation_token}`,
+          data: {
+            user_type: 'storyteller',
+            storyteller_id: storytellerInfo.id,
+            storyteller_name: storytellerInfo.name,
+            invitation_token: storytellerInfo.invitation_token,
+            invitation_context: 'return_visit'
+          }
+        },
+      });
+
+      if (error) {
+        toast({
+          title: "Failed to Send Magic Link",
+          description: error.message,
+          variant: "destructive",
+        });
+      } else {
+        setMagicLinkSent(true);
+        toast({
+          title: "Magic Link Sent!",
+          description: "Check your email and click the link to continue your story.",
+        });
+      }
+    } catch (error) {
+      console.error('Error sending magic link:', error);
+      toast({
+        title: "An Error Occurred",
+        description: "Please try again later.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // If email hasn't been checked yet, check it first
+    if (!emailChecked) {
+      await checkUserType(formData.email);
+      return;
+    }
+
+    // Handle based on user type
+    if (userType === 'storyteller') {
+      await sendMagicLink();
+      return;
+    }
+
+    // Regular user authentication flow
     setIsLoading(true);
     
     try {
@@ -64,11 +209,58 @@ const SignIn = () => {
   };
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    
     setFormData(prev => ({
       ...prev,
-      [e.target.name]: e.target.value
+      [name]: value
     }));
+
+    // Reset states when email changes
+    if (name === 'email') {
+      setUserType('unknown');
+      setEmailChecked(false);
+      setStorytellerInfo(null);
+      setMagicLinkSent(false);
+      
+      // Check user type when email has @ and seems complete
+      if (value.includes('@') && value.includes('.')) {
+        // Debounce the check to avoid excessive API calls
+        const timer = setTimeout(() => {
+          checkUserType(value);
+        }, 500);
+        
+        return () => clearTimeout(timer);
+      }
+    }
   };
+
+  // Function to get smart messaging based on user type
+  const getSmartMessaging = () => {
+    if (!emailChecked || userType === 'unknown') {
+      return {
+        title: "Welcome Back",
+        description: "Enter your email to continue"
+      };
+    }
+    
+    if (userType === 'storyteller') {
+      const name = storytellerInfo?.name ? ` ${storytellerInfo.name}` : '';
+      return {
+        title: `Welcome${name}!`,
+        description: storytellerInfo?.has_draft 
+          ? "We'll send you a link to continue your story"
+          : "We'll send you a link to start sharing your story"
+      };
+    }
+    
+    return {
+      title: "Welcome Back",
+      description: "Continue your strengths discovery journey"
+    };
+  };
+
+  const smartMessaging = getSmartMessaging();
 
   return (
     <div className="min-h-screen bg-gradient-card">
@@ -79,76 +271,144 @@ const SignIn = () => {
           <div className="max-w-md mx-auto">
             <Card className="shadow-elegant border-0">
               <CardHeader className="text-center">
-                <CardTitle className="text-2xl font-bold text-foreground">
-                  Welcome Back
-                </CardTitle>
+                <div className="flex items-center justify-center mb-2">
+                  {userType === 'storyteller' ? (
+                    <Users className="w-6 h-6 text-primary mr-2" />
+                  ) : (
+                    <User className="w-6 h-6 text-primary mr-2" />
+                  )}
+                  <CardTitle className="text-2xl font-bold text-foreground">
+                    {smartMessaging.title}
+                  </CardTitle>
+                </div>
                 <CardDescription className="text-muted-foreground">
-                  Continue your strengths discovery journey
+                  {smartMessaging.description}
                 </CardDescription>
+                
+                {/* Show storyteller progress indicator */}
+                {userType === 'storyteller' && storytellerInfo && (
+                  <div className="mt-3 p-2 bg-primary/10 rounded-md">
+                    <p className="text-xs text-primary font-medium">
+                      {storytellerInfo.has_submitted ? (
+                        "✅ Story submitted"
+                      ) : storytellerInfo.has_draft ? (
+                        "📝 Draft saved - ready to continue"
+                      ) : (
+                        "🚀 Ready to start your story"
+                      )}
+                    </p>
+                  </div>
+                )}
               </CardHeader>
               
               <CardContent>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="email">Email</Label>
-                    <div className="relative">
-                      <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="email"
-                        name="email"
-                        type="email"
-                        placeholder="john@example.com"
-                        value={formData.email}
-                        onChange={handleInputChange}
-                        className="pl-10"
-                        required
-                      />
+                {magicLinkSent ? (
+                  /* Magic link sent confirmation */
+                  <div className="text-center py-8">
+                    <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                      <Mail className="w-8 h-8 text-primary" />
                     </div>
+                    <h3 className="text-lg font-semibold mb-2">Check Your Email</h3>
+                    <p className="text-sm text-muted-foreground mb-6">
+                      We've sent you a magic link to continue your story. 
+                      Click the link in your email to proceed.
+                    </p>
+                    <Button
+                      variant="outline"
+                      onClick={() => setMagicLinkSent(false)}
+                      className="w-full"
+                    >
+                      Send Another Link
+                    </Button>
                   </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="password">Password</Label>
-                    <div className="relative">
-                      <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
-                      <Input
-                        id="password"
-                        name="password"
-                        type="password"
-                        placeholder="Enter your password"
-                        value={formData.password}
-                        onChange={handleInputChange}
-                        className="pl-10"
-                        required
-                      />
+                ) : (
+                  <form onSubmit={handleSubmit} className="space-y-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="email">Email</Label>
+                      <div className="relative">
+                        <Mail className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                        <Input
+                          id="email"
+                          name="email"
+                          type="email"
+                          placeholder="john@example.com"
+                          value={formData.email}
+                          onChange={handleInputChange}
+                          className="pl-10"
+                          required
+                        />
+                      </div>
                     </div>
+
+                    {/* Show password field only for regular users after email is checked */}
+                    {emailChecked && userType === 'regular' && (
+                      <>
+                        <div className="space-y-2">
+                          <Label htmlFor="password">Password</Label>
+                          <div className="relative">
+                            <Lock className="absolute left-3 top-3 w-4 h-4 text-muted-foreground" />
+                            <Input
+                              id="password"
+                              name="password"
+                              type="password"
+                              placeholder="Enter your password"
+                              value={formData.password}
+                              onChange={handleInputChange}
+                              className="pl-10"
+                              required
+                            />
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between text-sm">
+                          <Link to="/forgot-password" className="text-primary hover:underline">
+                            Forgot password?
+                          </Link>
+                        </div>
+                      </>
+                    )}
+
+                    <Button 
+                      type="submit" 
+                      variant="hero" 
+                      size="lg" 
+                      className="w-full mt-6"
+                      disabled={isLoading}
+                    >
+                      {isLoading ? (
+                        emailChecked ? (
+                          userType === 'storyteller' ? "Sending Magic Link..." : "Signing In..."
+                        ) : "Checking..."
+                      ) : (
+                        emailChecked ? (
+                          userType === 'storyteller' ? "Send Magic Link" : "Sign In"
+                        ) : "Continue"
+                      )}
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </form>
+                )}
+
+                {/* Show sign-up link only for regular users or when user type is unknown */}
+                {(userType === 'regular' || userType === 'unknown') && (
+                  <div className="mt-6 text-center">
+                    <p className="text-sm text-muted-foreground">
+                      Don't have an account?{" "}
+                      <Link to="/sign-up" className="text-primary hover:underline">
+                        Create one now
+                      </Link>
+                    </p>
                   </div>
+                )}
 
-                  <div className="flex items-center justify-between text-sm">
-                    <Link to="/forgot-password" className="text-primary hover:underline">
-                      Forgot password?
-                    </Link>
+                {/* Special message for storytellers */}
+                {userType === 'storyteller' && !magicLinkSent && (
+                  <div className="mt-6 text-center">
+                    <p className="text-xs text-muted-foreground">
+                      You were invited to share a story. No account creation needed.
+                    </p>
                   </div>
-
-                  <Button 
-                    type="submit" 
-                    variant="hero" 
-                    size="lg" 
-                    className="w-full mt-6"
-                    disabled={isLoading}
-                  >
-                    {isLoading ? "Signing In..." : "Sign In"}
-                    <ArrowRight className="w-4 h-4 ml-2" />
-                  </Button>
-                </form>
-
-                <div className="mt-6 text-center">
-                  <p className="text-sm text-muted-foreground">
-                    Don't have an account?{" "}
-                    <Link to="/sign-up" className="text-primary hover:underline">
-                      Create one now
-                    </Link>
-                  </p>
-                </div>
+                )}
               </CardContent>
             </Card>
 

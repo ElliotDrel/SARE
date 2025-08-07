@@ -17,6 +17,7 @@ import SelfReflection from "./pages/SelfReflection";
 import StorytellerWelcome from "./pages/storyteller/StorytellerWelcome";
 import StorytellerWrite from "./pages/storyteller/StorytellerWrite";
 import StorytellerThankYou from "./pages/storyteller/StorytellerThankYou";
+import AuthCallback from "./pages/AuthCallback";
 
 const queryClient = new QueryClient();
 
@@ -32,6 +33,9 @@ const App = () => (
           <Route path="/about" element={<About />} />
           <Route path="/sign-up" element={<SignUp />} />
           <Route path="/sign-in" element={<SignIn />} />
+          
+          {/* Auth Callback Route */}
+          <Route path="/auth/callback" element={<AuthCallback />} />
           
           {/* Storyteller Portal Routes */}
           <Route path="/storyteller/welcome" element={<StorytellerWelcome />} />
