@@ -6,6 +6,39 @@ import { Database } from "@/integrations/supabase/types";
 type Storyteller = Database["public"]["Tables"]["storytellers"]["Row"];
 type StorytellerInsert = Database["public"]["Tables"]["storytellers"]["Insert"];
 
+// Custom error class for storyteller-specific errors
+export class StorytellerError extends Error {
+  constructor(
+    message: string,
+    public code: 'DUPLICATE_EMAIL' | 'AUTHENTICATION' | 'UNKNOWN' = 'UNKNOWN'
+  ) {
+    super(message);
+    this.name = 'StorytellerError';
+  }
+}
+
+// Helper function to parse Supabase errors and create appropriate errors
+const parseStorytellerError = (error: unknown): StorytellerError => {
+  // Type guard for error objects
+  const isErrorObject = (err: unknown): err is { code?: string; message?: string } => {
+    return typeof err === 'object' && err !== null;
+  };
+  
+  // Check for duplicate email constraint violation
+  if (isErrorObject(error) && error.code === '23505' && error.message?.includes('storytellers_user_id_email_key')) {
+    return new StorytellerError(
+      'A storyteller with this email address already exists in your list.',
+      'DUPLICATE_EMAIL'
+    );
+  }
+  
+  // Fallback to generic error
+  return new StorytellerError(
+    isErrorObject(error) && error.message ? error.message : 'An unexpected error occurred while adding the storyteller.',
+    'UNKNOWN'
+  );
+};
+
 export const useStorytellers = () => {
   const { user } = useAuth();
   
@@ -33,7 +66,9 @@ export const useAddStoryteller = () => {
   
   return useMutation({
     mutationFn: async (storyteller: Omit<StorytellerInsert, "user_id">) => {
-      if (!user) throw new Error("User not authenticated");
+      if (!user) {
+        throw new StorytellerError("User not authenticated", "AUTHENTICATION");
+      }
       
       const { data, error } = await supabase
         .from("storytellers")
@@ -41,7 +76,9 @@ export const useAddStoryteller = () => {
         .select()
         .single();
       
-      if (error) throw error;
+      if (error) {
+        throw parseStorytellerError(error);
+      }
       return data;
     },
     onSuccess: () => {

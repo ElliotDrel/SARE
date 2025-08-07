@@ -53,7 +53,7 @@ import {
   Trash2,
   Target
 } from "lucide-react";
-import { useStorytellers, useAddStoryteller, useUpdateStoryteller } from "@/hooks/useStorytellers";
+import { useStorytellers, useAddStoryteller, useUpdateStoryteller, StorytellerError } from "@/hooks/useStorytellers";
 import { useProfile, useStoryCount } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -144,11 +144,35 @@ const InviteTrack = () => {
         description: `${formData.name} has been added to your list.`,
       });
     } catch (error) {
-      toast({
-        title: "Error",
-        description: "Failed to add storyteller. Please try again.",
-        variant: "destructive",
-      });
+      // Handle specific StorytellerError types
+      if (error instanceof StorytellerError) {
+        if (error.code === 'DUPLICATE_EMAIL') {
+          toast({
+            title: "Duplicate Email",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else if (error.code === 'AUTHENTICATION') {
+          toast({
+            title: "Authentication Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        } else {
+          toast({
+            title: "Error",
+            description: error.message,
+            variant: "destructive",
+          });
+        }
+      } else {
+        // Fallback for unexpected error types
+        toast({
+          title: "Error",
+          description: "Failed to add storyteller. Please try again.",
+          variant: "destructive",
+        });
+      }
     }
   };
 

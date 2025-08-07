@@ -184,7 +184,7 @@ export const getInvitationStatusDisplay = (status: string | null, lastContacted?
         label: 'Not Sent',
         description: 'Invitation not yet sent'
       };
-    case 'sent':
+    case 'sent': {
       const daysSinceSent = lastContacted ? 
         Math.floor((Date.now() - new Date(lastContacted).getTime()) / (1000 * 60 * 60 * 24)) : 0;
       return { 
@@ -193,6 +193,7 @@ export const getInvitationStatusDisplay = (status: string | null, lastContacted?
         label: 'Sent',
         description: daysSinceSent > 0 ? `${daysSinceSent} days ago` : 'Today'
       };
+    }
     case 'reminded':
       return { 
         variant: 'outline' as const, 
