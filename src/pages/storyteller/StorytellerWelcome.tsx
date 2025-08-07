@@ -234,14 +234,6 @@ const StorytellerWelcome = () => {
             Get Started
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>
-          
-          <Button 
-            variant="outline" 
-            size="lg"
-            onClick={() => window.history.back()}
-          >
-            Not Right Now
-          </Button>
         </div>
       </main>
     </div>
