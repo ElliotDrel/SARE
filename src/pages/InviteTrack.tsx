@@ -53,7 +53,7 @@ import {
   Trash2,
   Target
 } from "lucide-react";
-import { useStorytellers, useAddStoryteller, useUpdateStoryteller, StorytellerError } from "@/hooks/useStorytellers";
+import { useStorytellers, useAddStoryteller, useUpdateStoryteller, useDeleteStoryteller, StorytellerError } from "@/hooks/useStorytellers";
 import { useProfile, useStoryCount } from "@/hooks/useProfile";
 import { useToast } from "@/hooks/use-toast";
 import { 
@@ -81,6 +81,7 @@ const InviteTrack = () => {
   const { data: storytellers = [], isLoading: storytellersLoading } = useStorytellers();
   const addStoryteller = useAddStoryteller();
   const updateStoryteller = useUpdateStoryteller();
+  const deleteStoryteller = useDeleteStoryteller();
   
   // Magic link invitation hooks
   const sendInvitation = useSendStorytellerInvitation();
@@ -89,7 +90,9 @@ const InviteTrack = () => {
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [editingStoryteller, setEditingStoryteller] = useState<Storyteller | null>(null);
+  const [deletingStoryteller, setDeletingStoryteller] = useState<Storyteller | null>(null);
   const [searchFilter, setSearchFilter] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   
@@ -328,6 +331,37 @@ const InviteTrack = () => {
       toast({
         title: "Bulk send failed",
         description: "There was an error sending bulk invitations.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  // Handle delete storyteller - opens confirmation dialog
+  const handleDelete = (storyteller: Storyteller) => {
+    setDeletingStoryteller(storyteller);
+    setIsDeleteDialogOpen(true);
+  };
+
+  // Handle confirmed deletion
+  const handleConfirmDelete = async () => {
+    if (!deletingStoryteller) return;
+
+    try {
+      await deleteStoryteller.mutateAsync(deletingStoryteller.id);
+      
+      toast({
+        title: "Storyteller deleted",
+        description: `${deletingStoryteller.name} has been removed from your list.`,
+      });
+      
+      // Clean up state
+      setIsDeleteDialogOpen(false);
+      setDeletingStoryteller(null);
+    } catch (error) {
+      console.error("Delete failed:", error);
+      toast({
+        title: "Delete failed",
+        description: "There was an error deleting the storyteller. Please try again.",
         variant: "destructive",
       });
     }
@@ -677,6 +711,13 @@ const InviteTrack = () => {
                                 Mark as Invited (Manual)
                               </DropdownMenuItem>
                             )}
+                            <DropdownMenuItem 
+                              onClick={() => handleDelete(storyteller)}
+                              className="text-destructive focus:text-destructive"
+                            >
+                              <Trash2 className="h-4 w-4 mr-2" />
+                              Delete Storyteller
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>
@@ -767,6 +808,51 @@ const InviteTrack = () => {
               </Button>
             </div>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Delete Storyteller</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-muted-foreground">
+              Are you sure you want to delete <strong>{deletingStoryteller?.name}</strong>? 
+              This action cannot be undone and will permanently remove them from your storyteller list.
+            </p>
+            {deletingStoryteller?.invitation_status === 'responded' && (
+              <Alert>
+                <AlertCircle className="h-4 w-4" />
+                <AlertDescription>
+                  <strong>Warning:</strong> This storyteller has already responded with their story. 
+                  Deleting them will not affect your collected stories.
+                </AlertDescription>
+              </Alert>
+            )}
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => {
+                setIsDeleteDialogOpen(false);
+                setDeletingStoryteller(null);
+              }}
+              disabled={deleteStoryteller.isPending}
+            >
+              Cancel
+            </Button>
+            <Button 
+              type="button" 
+              variant="destructive"
+              onClick={handleConfirmDelete}
+              disabled={deleteStoryteller.isPending}
+            >
+              {deleteStoryteller.isPending ? "Deleting..." : "Delete Storyteller"}
+            </Button>
+          </div>
         </DialogContent>
       </Dialog>
     </div>

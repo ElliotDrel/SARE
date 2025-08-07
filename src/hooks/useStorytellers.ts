@@ -113,3 +113,27 @@ export const useUpdateStoryteller = () => {
     },
   });
 };
+
+export const useDeleteStoryteller = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  
+  return useMutation({
+    mutationFn: async (id: string) => {
+      if (!user) throw new Error("User not authenticated");
+      
+      const { error } = await supabase
+        .from("storytellers")
+        .delete()
+        .eq("id", id)
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      return { id };
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["storytellers"] });
+      queryClient.invalidateQueries({ queryKey: ["recent-activity"] });
+    },
+  });
+};

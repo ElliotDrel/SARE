@@ -18,17 +18,29 @@ export const useStorytellerByToken = (token: string | null) => {
     queryFn: async () => {
       if (!token) return null;
       
-      const { data, error } = await supabase
+      // First get storyteller data
+      const { data: storytellerData, error: storytellerError } = await supabase
         .from("storytellers")
-        .select(`
-          *,
-          profiles!storytellers_user_id_fkey(display_name, first_name, last_name)
-        `)
+        .select("*")
         .eq("invitation_token", token)
         .gt("token_expires_at", new Date().toISOString())
         .single();
       
-      if (error) throw error;
+      if (storytellerError) throw storytellerError;
+      
+      // Then get the profile data for the story requester
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("display_name, first_name, last_name")
+        .eq("user_id", storytellerData.user_id)
+        .single();
+      
+      // Combine the data (don't throw error if profile fetch fails)
+      const data = {
+        ...storytellerData,
+        profiles: profileError ? null : profileData
+      };
+      
       return data;
     },
     enabled: !!token,
@@ -44,16 +56,29 @@ export const useCurrentStoryteller = () => {
     queryFn: async () => {
       if (!user) return null;
       
-      const { data, error } = await supabase
+      // Get storyteller data for authenticated user
+      const { data: storytellerData, error: storytellerError } = await supabase
         .from("storytellers")
-        .select(`
-          *,
-          profiles!storytellers_user_id_fkey(display_name, first_name, last_name)
-        `)
+        .select("*")
         .eq("auth_user_id", user.id)
         .single();
       
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
+      if (storytellerError && storytellerError.code !== 'PGRST116') throw storytellerError;
+      if (!storytellerData) return null;
+      
+      // Get the profile data for the story requester
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("display_name, first_name, last_name")
+        .eq("user_id", storytellerData.user_id)
+        .single();
+      
+      // Combine the data
+      const data = {
+        ...storytellerData,
+        profiles: profileError ? null : profileData
+      };
+      
       return data;
     },
     enabled: !!user,
