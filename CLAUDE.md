@@ -15,9 +15,21 @@ SARE (Strengths in Action Reflection Experience) is a React TypeScript applicati
 - `npm run lint` - Run ESLint
 - `npm run preview` - Preview production build
 
+### Supabase Database Commands
+- `npx supabase db push --linked` - Apply migrations to cloud database
+- `npx supabase db push --linked --dry-run` - Preview migrations without applying
+- `npx supabase migration list --linked` - View migration status
+- `npx supabase migration new <name>` - Create new migration file
+- `npx supabase migration repair --status reverted <migration_id>` - Repair migration status
+
+#### Supabase CLI Prerequisites
+- Authentication required: `npx supabase login` (one-time setup)
+- Database password in environment: Set `SUPABASE_DB_PASSWORD` in `.env` file  
+- Project linked to cloud database (ref: `fapgoifqhtoryzykziye`)
+- Use migrations for repeatable, tracked database changes
+
 ### Package Management
 - Uses npm (package-lock.json present)
-- Bun lockfile also present but npm is preferred
 
 ## Architecture Overview
 
@@ -64,10 +76,10 @@ The app follows a multi-stage user journey:
 - Some strict checks disabled for flexibility (noImplicitAny, strictNullChecks, etc.)
 - Base URL set to "." with path mapping
 
-### Database
-- Supabase integration with typed client
-- Migrations located in `supabase/migrations/`
+### Database & Backend
+- Supabase integration with typed client and backend services
 - Client configured with public URL and anon key
+- Migrations located in `supabase/migrations/` for schema changes
 
 ## Development Notes
 
