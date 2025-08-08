@@ -26,7 +26,7 @@ const StorytellerWelcome = () => {
   
   const token = searchParams.get('token');
   const { data: storyteller, isLoading: storytellerLoading, error } = useStorytellerByToken(token);
-  const { data: submittedStory } = useSubmittedStory(storyteller?.id || null);
+  const { data: submittedStory } = useSubmittedStory(token);
   const updateAccess = useUpdateStorytellerAccess();
 
   // Update access tracking when page loads

@@ -57,9 +57,12 @@ const SignIn = () => {
     setIsLoading(true);
     
     try {
-      // Check if this email belongs to a storyteller
+      // Check if this email belongs to a storyteller (fallback to direct query if RPC not available)
       const { data: storytellers, error } = await supabase
-        .rpc('get_storyteller_by_email', { target_email: email });
+        .from('storytellers')
+        .select('id, name, email, auth_user_id, invitation_status, access_method')
+        .eq('email', email)
+        .limit(1);
 
       if (error) {
         console.error('Error checking storyteller:', error);

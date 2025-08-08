@@ -27,7 +27,7 @@ const StorytellerThankYou = () => {
   
   const token = searchParams.get('token');
   const { data: storyteller, isLoading: storytellerLoading } = useStorytellerByToken(token);
-  const { data: submittedStory, isLoading: storyLoading } = useSubmittedStory(storyteller?.id || null);
+  const { data: submittedStory, isLoading: storyLoading } = useSubmittedStory(token);
 
   // Redirect to write page if no story submitted yet
   useEffect(() => {

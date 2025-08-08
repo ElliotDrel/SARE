@@ -37,8 +37,8 @@ const StorytellerWrite = () => {
   const token = searchParams.get('token');
   const isEditing = searchParams.get('edit') === 'true';
   const { data: storyteller, isLoading: storytellerLoading } = useStorytellerByToken(token);
-  const { data: existingDraft } = useStoryDraft(storyteller?.id || null);
-  const { data: submittedStory } = useSubmittedStory(storyteller?.id || null);
+  const { data: existingDraft } = useStoryDraft(token);
+  const { data: submittedStory } = useSubmittedStory(token);
   const submitStory = useSubmitStory();
 
   // Form state
@@ -53,7 +53,7 @@ const StorytellerWrite = () => {
 
   // Auto-save with the custom hook
   const { lastSaved, isSaving } = useAutoSaveStoryDraft(
-    storyteller?.id || null,
+    token,
     formData,
     !submittedStory && !!storyteller
   );
@@ -106,8 +106,7 @@ const StorytellerWrite = () => {
     setIsSubmitting(true);
     try {
       await submitStory.mutateAsync({
-        storytellerId: storyteller.id,
-        userId: storyteller.user_id,
+        token: token as string,
         storyData: {
           story_one: formData.story_one.trim(),
           story_two: formData.story_two.trim() || null,

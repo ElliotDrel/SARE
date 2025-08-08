@@ -27,7 +27,7 @@ const AuthCallback = () => {
           const callbackType = searchParams.get('type');
           const tokenFromUrl = searchParams.get('token');
           
-          if (userType === 'storyteller' || callbackType?.includes('storyteller')) {
+            if (userType === 'storyteller' || callbackType?.includes('storyteller')) {
             // Update storyteller with auth user ID  
             const storytellerIdToUse = storytellerId;
             if (storytellerIdToUse) {
@@ -41,42 +41,20 @@ const AuthCallback = () => {
             const tokenToUse = tokenFromUrl || invitationToken;
             
             // Redirect to appropriate storyteller page based on context
-            if (tokenToUse) {
-              // Check if storyteller has already submitted
-              const { data: storyteller } = await supabase
-                .from('storytellers')
-                .select('*')
-                .eq('invitation_token', tokenToUse)
-                .single();
-              
-              if (storyteller) {
-                // Check if story already exists
-                const { data: existingStory } = await supabase
-                  .from('stories')
-                  .select('*')
-                  .eq('storyteller_id', storyteller.id)
-                  .single();
-                
-                if (existingStory?.status === 'submitted') {
+              if (tokenToUse) {
+                // Prefer RPCs that validate token + expiry and avoid table access from anon
+                const { data: submittedStory } = await supabase.rpc('get_submitted_story_by_token', { token: tokenToUse });
+                if (submittedStory) {
                   navigate(`/storyteller/thank-you?token=${tokenToUse}`);
+                  return;
+                }
+                const { data: draft } = await supabase.rpc('get_story_draft_by_token', { token: tokenToUse });
+                if (draft) {
+                  navigate(`/storyteller/write?token=${tokenToUse}`);
                 } else {
-                  // Check for draft
-                  const { data: draft } = await supabase
-                    .from('story_drafts')
-                    .select('*')
-                    .eq('storyteller_id', storyteller.id)
-                    .single();
-                  
-                  if (draft || existingStory) {
-                    navigate(`/storyteller/write?token=${tokenToUse}`);
-                  } else {
-                    navigate(`/storyteller/welcome?token=${tokenToUse}`);
-                  }
+                  navigate(`/storyteller/welcome?token=${tokenToUse}`);
                 }
               } else {
-                navigate(`/storyteller/welcome?token=${tokenToUse}`);
-              }
-            } else {
               // No token - redirect to welcome with basic flow
               navigate('/storyteller/welcome');
             }

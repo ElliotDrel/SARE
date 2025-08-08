@@ -313,6 +313,47 @@ export type Database = {
         Args: Record<string, never>
         Returns: undefined
       }
+      storyteller_by_token: {
+        Args: { token: string }
+        Returns: {
+          id: string
+          user_id: string
+          name: string
+          email: string
+          invitation_status: string | null
+          access_method: string | null
+          auth_user_id: string | null
+          token_expires_at: string | null
+          profiles: Json | null
+        }[]
+      }
+      get_story_draft_by_token: {
+        Args: { token: string }
+        Returns: Database["public"]["Tables"]["story_drafts"]["Row"]
+      }
+      upsert_story_draft_by_token: {
+        Args: {
+          token: string
+          p_story_one: string | null
+          p_story_two: string | null
+          p_story_three: string | null
+          p_notes?: string | null
+        }
+        Returns: Database["public"]["Tables"]["story_drafts"]["Row"]
+      }
+      get_submitted_story_by_token: {
+        Args: { token: string }
+        Returns: Database["public"]["Tables"]["stories"]["Row"]
+      }
+      submit_story_by_token: {
+        Args: {
+          token: string
+          p_story_one: string | null
+          p_story_two?: string | null
+          p_story_three?: string | null
+        }
+        Returns: Database["public"]["Tables"]["stories"]["Row"]
+      }
       get_storyteller_by_email: {
         Args: { target_email: string }
         Returns: {

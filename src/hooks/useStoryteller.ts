@@ -10,38 +10,20 @@ type StoryDraftInsert = Database["public"]["Tables"]["story_drafts"]["Insert"];
 type StoryDraftUpdate = Database["public"]["Tables"]["story_drafts"]["Update"];
 type Story = Database["public"]["Tables"]["stories"]["Row"];
 type StoryInsert = Database["public"]["Tables"]["stories"]["Insert"];
+type StorytellerByToken = Database["public"]["Functions"]["storyteller_by_token"]["Returns"][number];
 
-// Hook to get storyteller by invitation token
+// Hook to get storyteller by invitation token (via SECURITY DEFINER RPC)
 export const useStorytellerByToken = (token: string | null) => {
   return useQuery({
     queryKey: ["storyteller-by-token", token],
     queryFn: async () => {
       if (!token) return null;
       
-      // First get storyteller data
-      const { data: storytellerData, error: storytellerError } = await supabase
-        .from("storytellers")
-        .select("*")
-        .eq("invitation_token", token)
-        .gt("token_expires_at", new Date().toISOString())
-        .single();
-      
-      if (storytellerError) throw storytellerError;
-      
-      // Then get the profile data for the story requester
-      const { data: profileData, error: profileError } = await supabase
-        .from("profiles")
-        .select("display_name, first_name, last_name")
-        .eq("user_id", storytellerData.user_id)
-        .single();
-      
-      // Combine the data (don't throw error if profile fetch fails)
-      const data = {
-        ...storytellerData,
-        profiles: profileError ? null : profileData
-      };
-      
-      return data;
+      const { data, error } = await supabase.rpc('storyteller_by_token', { token });
+      if (error) throw error;
+      // Returns 0-1 rows as an array
+      const row = Array.isArray(data) ? (data[0] as StorytellerByToken | undefined) : undefined;
+      return row ?? null;
     },
     enabled: !!token,
   });
@@ -85,43 +67,31 @@ export const useCurrentStoryteller = () => {
   });
 };
 
-// Hook to get story draft for storyteller
-export const useStoryDraft = (storytellerId: string | null) => {
+// Hook to get story draft for storyteller (via token RPC)
+export const useStoryDraft = (token: string | null) => {
   return useQuery({
-    queryKey: ["story-draft", storytellerId],
+    queryKey: ["story-draft", token],
     queryFn: async () => {
-      if (!storytellerId) return null;
-      
-      const { data, error } = await supabase
-        .from("story_drafts")
-        .select("*")
-        .eq("storyteller_id", storytellerId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-      return data;
+      if (!token) return null;
+      const { data, error } = await supabase.rpc('get_story_draft_by_token', { token });
+      if (error) throw error;
+      return (data as StoryDraft | null);
     },
-    enabled: !!storytellerId,
+    enabled: !!token,
   });
 };
 
-// Hook to get submitted story for storyteller
-export const useSubmittedStory = (storytellerId: string | null) => {
+// Hook to get submitted story for storyteller (via token RPC)
+export const useSubmittedStory = (token: string | null) => {
   return useQuery({
-    queryKey: ["submitted-story", storytellerId],
+    queryKey: ["submitted-story", token],
     queryFn: async () => {
-      if (!storytellerId) return null;
-      
-      const { data, error } = await supabase
-        .from("stories")
-        .select("*")
-        .eq("storyteller_id", storytellerId)
-        .single();
-      
-      if (error && error.code !== 'PGRST116') throw error; // PGRST116 is "not found"
-      return data;
+      if (!token) return null;
+      const { data, error } = await supabase.rpc('get_submitted_story_by_token', { token });
+      if (error) throw error;
+      return (data as Story | null);
     },
-    enabled: !!storytellerId,
+    enabled: !!token,
   });
 };
 
@@ -131,40 +101,24 @@ export const useStoryDraftMutation = () => {
   
   return useMutation({
     mutationFn: async ({ 
-      storytellerId, 
-      draftData,
-      isUpdate = false 
+      token,
+      draftData
     }: { 
-      storytellerId: string; 
+      token: string;
       draftData: Omit<StoryDraftInsert, 'storyteller_id'>;
-      isUpdate?: boolean;
     }) => {
-      if (isUpdate) {
-        const { data, error } = await supabase
-          .from("story_drafts")
-          .update(draftData as StoryDraftUpdate)
-          .eq("storyteller_id", storytellerId)
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
-      } else {
-        const { data, error } = await supabase
-          .from("story_drafts")
-          .upsert({ 
-            ...draftData, 
-            storyteller_id: storytellerId 
-          })
-          .select()
-          .single();
-        
-        if (error) throw error;
-        return data;
-      }
+      const { data, error } = await supabase.rpc('upsert_story_draft_by_token', {
+        token,
+        p_story_one: draftData.story_one ?? null,
+        p_story_two: draftData.story_two ?? null,
+        p_story_three: draftData.story_three ?? null,
+        p_notes: draftData.notes ?? null,
+      });
+      if (error) throw error;
+      return (data as StoryDraft | null);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["story-draft", variables.storytellerId] });
+      queryClient.invalidateQueries({ queryKey: ["story-draft", variables.token] });
     },
   });
 };
@@ -175,48 +129,24 @@ export const useSubmitStory = () => {
   
   return useMutation({
     mutationFn: async ({
-      storytellerId,
-      userId,
+      token,
       storyData,
     }: {
-      storytellerId: string;
-      userId: string;
+      token: string;
       storyData: Pick<StoryInsert, 'story_one' | 'story_two' | 'story_three'>;
     }) => {
-      // Create the final story
-      const { data: story, error: storyError } = await supabase
-        .from("stories")
-        .insert({
-          ...storyData,
-          storyteller_id: storytellerId,
-          user_id: userId,
-          status: 'submitted',
-          submitted_at: new Date().toISOString()
-        })
-        .select()
-        .single();
-      
-      if (storyError) throw storyError;
-      
-      // Update storyteller invitation status
-      const { error: storytellerError } = await supabase
-        .from("storytellers")
-        .update({ invitation_status: 'submitted' })
-        .eq("id", storytellerId);
-      
-      if (storytellerError) throw storytellerError;
-      
-      // Delete the draft since story is now submitted
-      await supabase
-        .from("story_drafts")
-        .delete()
-        .eq("storyteller_id", storytellerId);
-      
-      return story;
+      const { data, error } = await supabase.rpc('submit_story_by_token', {
+        token,
+        p_story_one: storyData.story_one ?? null,
+        p_story_two: storyData.story_two ?? null,
+        p_story_three: storyData.story_three ?? null,
+      });
+      if (error) throw error;
+      return (data as Story | null);
     },
     onSuccess: (_, variables) => {
-      queryClient.invalidateQueries({ queryKey: ["story-draft", variables.storytellerId] });
-      queryClient.invalidateQueries({ queryKey: ["submitted-story", variables.storytellerId] });
+      queryClient.invalidateQueries({ queryKey: ["story-draft", variables.token] });
+      queryClient.invalidateQueries({ queryKey: ["submitted-story", variables.token] });
       queryClient.invalidateQueries({ queryKey: ["storytellers"] });
     },
   });
@@ -238,7 +168,7 @@ export const useUpdateStorytellerAccess = () => {
 
 // Auto-save hook for story drafts
 export const useAutoSaveStoryDraft = (
-  storytellerId: string | null,
+  token: string | null,
   draftData: { story_one: string; story_two: string; story_three: string; notes?: string },
   enabled: boolean = true
 ) => {
@@ -247,7 +177,7 @@ export const useAutoSaveStoryDraft = (
   const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
-    if (!enabled || !storytellerId) return;
+    if (!enabled || !token) return;
 
     const timeoutId = setTimeout(async () => {
       // Only auto-save if there's some content
@@ -255,12 +185,11 @@ export const useAutoSaveStoryDraft = (
         setIsSaving(true);
         try {
           await draftMutation.mutateAsync({
-            storytellerId,
+            token,
             draftData: {
               ...draftData,
               auto_saved_at: new Date().toISOString()
             },
-            isUpdate: false // Use upsert
           });
           setLastSaved(new Date());
         } catch (error) {
@@ -272,7 +201,7 @@ export const useAutoSaveStoryDraft = (
     }, 10000); // Auto-save every 10 seconds
 
     return () => clearTimeout(timeoutId);
-  }, [draftData, storytellerId, enabled, draftMutation]);
+  }, [draftData, token, enabled, draftMutation]);
 
   return { lastSaved, isSaving };
 };
