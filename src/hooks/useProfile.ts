@@ -19,9 +19,25 @@ export const useProfile = () => {
         .from("profiles")
         .select("*")
         .eq("user_id", user.id)
-        .single();
-      
+        .maybeSingle();
+
       if (error) throw error;
+      // Auto-create a profile client-side if not yet provisioned by trigger
+      if (!data) {
+        const insertPayload: ProfileInsert = {
+          user_id: user.id,
+          created_at: new Date().toISOString(),
+          updated_at: new Date().toISOString(),
+          user_type: 'requester',
+        } as ProfileInsert;
+        const { data: created, error: upsertError } = await supabase
+          .from("profiles")
+          .upsert(insertPayload, { onConflict: 'user_id' })
+          .select()
+          .single();
+        if (upsertError) throw upsertError;
+        return created as Profile;
+      }
       return data as Profile;
     },
     enabled: !!user,

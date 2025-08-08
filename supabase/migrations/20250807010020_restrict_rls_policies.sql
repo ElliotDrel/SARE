@@ -14,6 +14,9 @@ DROP POLICY IF EXISTS "stories_public_read" ON public.stories;
 DROP POLICY IF EXISTS "stories_public_update" ON public.stories;
 DROP POLICY IF EXISTS "story_drafts_public_access" ON public.story_drafts;
 DROP POLICY IF EXISTS "profiles_public_read" ON public.profiles;
+-- Also remove any legacy wide policies that might re-grant broad access
+DROP POLICY IF EXISTS "storytellers_access" ON public.storytellers;
+DROP POLICY IF EXISTS "stories_access" ON public.stories;
 
 -- Storytellers: owner-only access
 -- Drop owner policies to avoid conflicts on re-run

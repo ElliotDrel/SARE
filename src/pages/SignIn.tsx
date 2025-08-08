@@ -50,59 +50,25 @@ const SignIn = () => {
     }
   }, [user, navigate, location.state]);
 
-  // Check user type when email is entered
+  // Check user type when email is entered (via minimal RPC)
   const checkUserType = async (email: string) => {
     if (!email || email === formData.email) return; // Avoid duplicate checks
-    
     setIsLoading(true);
-    
     try {
-      // Check if this email belongs to a storyteller (fallback to direct query if RPC not available)
-      const { data: storytellers, error } = await supabase
-        .from('storytellers')
-        .select('id, name, email, auth_user_id, invitation_status, access_method')
-        .eq('email', email)
-        .limit(1);
-
+      const { data: isStoryteller, error } = await supabase.rpc('is_storyteller_email', {
+        target_email: email,
+      });
       if (error) {
-        console.error('Error checking storyteller:', error);
-        setUserType('regular'); // Default to regular user if check fails
-        setEmailChecked(true);
-        return;
-      }
-
-      if (storytellers && storytellers.length > 0) {
-        // Get full storyteller info including invitation token
-        const { data: fullStorytellerData, error: storytellerError } = await supabase
-          .from('storytellers')
-          .select('*')
-          .eq('email', email)
-          .single();
-
-        if (storytellerError) {
-          console.error('Error getting full storyteller data:', storytellerError);
-          setUserType('regular');
-          setEmailChecked(true);
-          return;
-        }
-
-        // This is a storyteller
-        setUserType('storyteller');
-        setStorytellerInfo({
-          ...storytellers[0],
-          invitation_token: fullStorytellerData.invitation_token,
-          token_expires_at: fullStorytellerData.token_expires_at
-        });
-        setEmailChecked(true);
-      } else {
-        // This is a regular user
+        console.error('Error checking storyteller via RPC:', error);
         setUserType('regular');
-        setStorytellerInfo(null);
-        setEmailChecked(true);
+      } else {
+        setUserType(isStoryteller ? 'storyteller' : 'regular');
       }
+      setStorytellerInfo(null);
+      setEmailChecked(true);
     } catch (error) {
       console.error('Error checking user type:', error);
-      setUserType('regular'); // Default to regular user on error
+      setUserType('regular');
       setEmailChecked(true);
     } finally {
       setIsLoading(false);
@@ -110,55 +76,43 @@ const SignIn = () => {
   };
 
   const sendMagicLink = async () => {
-    if (!storytellerInfo || !storytellerInfo.invitation_token) return;
-
     setIsLoading(true);
-    
     try {
-      // Update the storyteller's last contact time
-      await supabase
-        .from('storytellers')
-        .update({ 
-          last_contacted_at: new Date().toISOString(),
-          access_method: 'return_user' 
-        })
-        .eq('id', storytellerInfo.id);
+      // Resolve storyteller id and token server-side with minimal leakage
+      const [{ data: storytellerId }, { data: token }] = await Promise.all([
+        supabase.rpc('get_storyteller_id_for_email', { target_email: formData.email }),
+        // Attempt to get token for current auth user; if not logged in yet, we fallback to email-based flow
+        supabase.rpc('get_invitation_token_for_current_user'),
+      ]);
 
-      // Send magic link to storyteller with proper metadata
+      if (!storytellerId && !token) {
+        throw new Error('Could not resolve storyteller');
+      }
+
+      // Send magic link with minimal metadata
+      const inviteToken = token as string | null;
+      const redirectTokenQuery = inviteToken ? `&token=${inviteToken}` : '';
       const { error } = await supabase.auth.signInWithOtp({
         email: formData.email,
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?type=storyteller_return&token=${storytellerInfo.invitation_token}`,
+          emailRedirectTo: `${window.location.origin}/auth/callback?type=storyteller_return${redirectTokenQuery}`,
           data: {
             user_type: 'storyteller',
-            storyteller_id: storytellerInfo.id,
-            storyteller_name: storytellerInfo.name,
-            invitation_token: storytellerInfo.invitation_token,
-            invitation_context: 'return_visit'
-          }
+            storyteller_id: storytellerId || undefined,
+            invitation_context: 'return_visit',
+          },
         },
       });
 
       if (error) {
-        toast({
-          title: "Failed to Send Magic Link",
-          description: error.message,
-          variant: "destructive",
-        });
+        toast({ title: 'Failed to Send Magic Link', description: error.message, variant: 'destructive' });
       } else {
         setMagicLinkSent(true);
-        toast({
-          title: "Magic Link Sent!",
-          description: "Check your email and click the link to continue your story.",
-        });
+        toast({ title: 'Magic Link Sent!', description: 'Check your email and click the link to continue your story.' });
       }
     } catch (error) {
       console.error('Error sending magic link:', error);
-      toast({
-        title: "An Error Occurred",
-        description: "Please try again later.",
-        variant: "destructive",
-      });
+      toast({ title: 'An Error Occurred', description: 'Please try again later.', variant: 'destructive' });
     } finally {
       setIsLoading(false);
     }

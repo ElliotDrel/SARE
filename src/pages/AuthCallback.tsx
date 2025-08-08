@@ -38,7 +38,12 @@ const AuthCallback = () => {
             }
             
             // Use token from URL or metadata
-            const tokenToUse = tokenFromUrl || invitationToken;
+            let tokenToUse = tokenFromUrl || invitationToken;
+            if (!tokenToUse) {
+              // Attempt to resolve token based on current user via RPC
+              const { data: resolvedToken } = await supabase.rpc('get_invitation_token_for_current_user');
+              if (resolvedToken) tokenToUse = resolvedToken as unknown as string;
+            }
             
             // Redirect to appropriate storyteller page based on context
               if (tokenToUse) {
