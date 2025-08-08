@@ -17,7 +17,7 @@ import {
   Target,
   Lightbulb
 } from "lucide-react";
-import { useProfile, useStoryCount } from "@/hooks/useProfile";
+import { useProfile, useStoryCount, useCanViewStories } from "@/hooks/useProfile";
 import { useRecentActivity } from "@/hooks/useStory";
 import { useStorytellers } from "@/hooks/useStorytellers";
 import { formatDistanceToNow } from "date-fns";
@@ -27,6 +27,7 @@ const Dashboard = () => {
   const { data: storyCount = 0, isLoading: storyCountLoading } = useStoryCount();
   const { data: activity, isLoading: activityLoading } = useRecentActivity();
   const { data: storytellers = [], isLoading: storytellersLoading } = useStorytellers();
+  const { data: canViewStories } = useCanViewStories();
 
   const isLoading = profileLoading || storyCountLoading || activityLoading || storytellersLoading;
 
@@ -256,7 +257,13 @@ const Dashboard = () => {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {activity?.recentStories && activity.recentStories.length > 0 ? (
+            {canViewStories === false && (
+              <div className="text-center py-6 text-muted-foreground">
+                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                <p className="text-sm">Stories are locked until you reach your goal and complete self-reflection.</p>
+              </div>
+            )}
+            {canViewStories !== false && activity?.recentStories && activity.recentStories.length > 0 ? (
               <div className="space-y-3">
                 {activity.recentStories.slice(0, 3).map((story) => (
                   <div key={story.id} className="flex items-center justify-between py-2">
@@ -285,11 +292,13 @@ const Dashboard = () => {
                 )}
               </div>
             ) : (
-              <div className="text-center py-6 text-muted-foreground">
-                <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                <p className="text-sm">No story submissions yet</p>
-                <p className="text-xs">Stories will appear here once submitted</p>
-              </div>
+              canViewStories !== false && (
+                <div className="text-center py-6 text-muted-foreground">
+                  <MessageSquare className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                  <p className="text-sm">No story submissions yet</p>
+                  <p className="text-xs">Stories will appear here once submitted</p>
+                </div>
+              )
             )}
           </CardContent>
         </Card>
